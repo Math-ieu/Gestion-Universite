@@ -1,18 +1,15 @@
 from django.urls import path
-from .views import (
-    EtudiantListCreate, EtudiantDetail, EnseignantListCreate, EnseignantDetail, 
-    CoursListCreate, CoursDetail, SeanceListCreate, SeanceDetail, 
-    CoursSemestreListCreate, CoursSemestreDetail, InscriptionListCreate, 
-    InscriptionDetail, NoteExamenListCreate, NoteExamenDetail, NoteTDTPListCreate, 
-    NoteTDTPDetail, ExerciceListCreate, ExerciceDetail, QuestionListCreate, QuestionDetail
+from .views import *
+from rest_framework_simplejwt.views import (
+    TokenRefreshView, 
 )
-
+ 
 urlpatterns = [
-    path('etudiants/', EtudiantListCreate.as_view(), name='etudiants-list'),
-    path('etudiants/<int:pk>/', EtudiantDetail.as_view(), name='etudiant-detail'),
     
-    path('enseignants/', EnseignantListCreate.as_view(), name='enseignants-list'),
-    path('enseignants/<int:pk>/', EnseignantDetail.as_view(), name='enseignant-detail'),
+     # Liste et création
+    path("utilisateurs/", UtilisateurListCreateView.as_view(), name="utilisateur-list-create"),
+    # Détail, mise à jour et suppression
+    path("utilisateurs/<int:pk>/", UtilisateurRetrieveUpdateDestroyView.as_view(), name="utilisateur-detail"),
     
     path('cours/', CoursListCreate.as_view(), name='cours-list'),
     path('cours/<int:pk>/', CoursDetail.as_view(), name='cours-detail'),
@@ -37,4 +34,12 @@ urlpatterns = [
 
     path('questions/', QuestionListCreate.as_view(), name='questions-list'),
     path('questions/<int:pk>/', QuestionDetail.as_view(), name='question-detail'),
+    
+    path('soumissions-exercices/', SoumissionExerciceListCreate.as_view(), name='soumissions-exercices-list'),
+    path('soumissions-exercices/<int:pk>/', SoumissionExerciceDetail.as_view(), name='soumission-exercice-detail'),
+    
+    path('register/', RegisterView.as_view(), name='register'),
+    path('token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    
 ]

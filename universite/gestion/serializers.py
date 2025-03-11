@@ -2,15 +2,22 @@
 from rest_framework import serializers
 from .models import *
 
-class EtudiantSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Etudiant
-        fields = '__all__'
 
-class EnseignantSerializer(serializers.ModelSerializer):
+class RegisterSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    nom = serializers.CharField(required=False, allow_blank=True)
+    prenom = serializers.CharField(required=False, allow_blank=True)
+    password = serializers.CharField(write_only=True, min_length=6)
+    role = serializers.ChoiceField(choices=["etudiant", "secretaire", "enseignant"])
+    annee = serializers.IntegerField(required=False)
+    tel = serializers.CharField(required=False, allow_blank=True)
+    fonction = serializers.CharField(required=False, allow_blank=True)
+    
+
+class UtilisateurSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Enseignant
-        fields = '__all__'
+        model = Utilisateur
+        fields = ['id', 'nom', 'prenom', 'email', 'role', 'annee', 'tel', 'fonction']
 
 class CoursSerializer(serializers.ModelSerializer):
     class Meta:
@@ -50,4 +57,9 @@ class ExerciceSerializer(serializers.ModelSerializer):
 class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
+        fields = '__all__'
+
+class SoumissionExerciceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SoumissionExercice
         fields = '__all__'

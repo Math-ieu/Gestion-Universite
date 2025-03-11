@@ -1,13 +1,8 @@
 from django.contrib import admin
-from .models import (
-    Etudiant, Enseignant, Cours, Seance, 
-    CoursSemestre, Inscription, NoteExamen, 
-    NoteTDTP, Exercice, Question
-)
+from .models import *
 
 # Enregistrement basique
-admin.site.register(Etudiant)
-admin.site.register(Enseignant)
+admin.site.register(Utilisateur)
 admin.site.register(Cours)
 admin.site.register(Seance)
 admin.site.register(CoursSemestre)
