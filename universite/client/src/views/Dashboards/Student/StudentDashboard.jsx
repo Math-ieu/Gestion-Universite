@@ -3,7 +3,7 @@ import { Layout } from '../../components/Layout';
 import { BookOpen, FileText, HelpCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-export const StudentDashboard: React.FC = () => {
+export const StudentDashboard = () => {
   return (
     <Layout>
       <div className="max-w-7xl mx-auto">

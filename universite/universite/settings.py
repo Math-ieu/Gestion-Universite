@@ -61,6 +61,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = 'universite.urls'
@@ -98,7 +99,7 @@ WSGI_APPLICATION = 'universite.wsgi.application'
 #         'PORT': env('DB_PORT', default='3306'),
 #     },
 #     'OPTIONS': {
-    
+
 #         "init_command": "SET default_storage_engine=INNODB",
 #     }
 # }
@@ -155,20 +156,24 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-    
+
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
 }
 
+AUTH_USER_MODEL = 'gestion.Utilisateur'
+
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173/", # L'URL de ton front-end React
+    "http://localhost:5173",  # URL par défaut de Vite
+    "http://127.0.0.1:5173"
 ]
+CORS_ALLOW_CREDENTIALS = True
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
-    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_HEADER_TYPES": ("Bearer",)
 }

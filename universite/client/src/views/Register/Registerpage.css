@@ -1,0 +1,13 @@
+#register-button {
+          background-color: var(--primary-color);
+
+}
+
+
+#register-button:hover {
+          background-color: var(--primary-color-hover);
+}
+
+#link {
+          color: var(--primary-color);
+}

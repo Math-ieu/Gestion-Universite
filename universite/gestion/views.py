@@ -10,28 +10,32 @@ from .serializers import *
 from django.shortcuts import get_object_or_404
 
 
-class RegisterView(APIView):
-    def post(self, request):
-        serializer = RegisterSerializer(data=request.data)
-        if serializer.is_valid():
-            email = serializer.validated_data['email']
-            serializer.validated_data['password'] = make_password(serializer.validated_data['password'])
-            
-            if Utilisateur.objects.filter(email=email).exists():
-                return Response({"error": "Email déjà utilisé"}, status=status.HTTP_400_BAD_REQUEST)
-
-            user = Utilisateur.objects.create(**serializer.validated_data)
-            
-            return Response({"message": "Utilisateur créé avec succès.", "user": {"email": user.email, "role": user.role}}, status=status.HTTP_201_CREATED)
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
+    
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
         
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except serializers.ValidationError as e:
+            # Log l'erreur pour débogage
+            logger.error(f"Erreur de validation: {e.detail}")
+            return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
+            
+        return Response(serializer.validated_data, status=status.HTTP_200_OK)
 
+class RegisterView(generics.CreateAPIView):
+    queryset = Utilisateur.objects.all()
+    permission_classes = (AllowAny,)
+    serializer_class = RegisterSerializer
+    
 class UtilisateurListCreateView(generics.ListCreateAPIView):
     """
     Vue pour lister et créer des utilisateurs en filtrant par rôle.
     Exemple : /api/utilisateurs/?role=etudiant
-    """
-    serializer_class = UtilisateurSerializer
+    """ 
+    serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]  # Authentification requise
 
     def get_queryset(self):
@@ -51,7 +55,7 @@ class UtilisateurRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView
     """
     Vue pour récupérer, mettre à jour et supprimer un utilisateur spécifique.
     """
-    serializer_class = UtilisateurSerializer
+    serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
@@ -66,21 +70,17 @@ class UtilisateurRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView
 
         return obj
 
-class MyTokenObtainPairView(TokenObtainPairView):
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        user = Utilisateur.objects.get(email=request.data["email"])
-        response.data["role"] = user.role
-        return response
+
+      # Autoriser tout le monde à accéder à cette vue
 
 class UtilisateurListCreate(generics.ListCreateAPIView):
     queryset = Utilisateur.objects.all()
-    serializer_class = UtilisateurSerializer
+    serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
 class UtilisateurDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Utilisateur.objects.all()
-    serializer_class = UtilisateurSerializer
+    serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
 # ========================

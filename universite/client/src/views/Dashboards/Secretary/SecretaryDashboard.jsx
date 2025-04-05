@@ -3,12 +3,12 @@ import { Layout } from '../../components/Layout';
 import { BookOpen, Users, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-export const SecretaryDashboard: React.FC = () => {
+export const SecretaryDashboard = () => {
   return (
-    <Layout>
+    <Layout> 
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Secretary Dashboard</h1>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Link
             to="/secretary/courses"

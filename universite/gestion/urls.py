@@ -4,7 +4,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView, 
 )
  
-urlpatterns = [
+urlpatterns = [ 
     
      # Liste et création
     path("utilisateurs/", UtilisateurListCreateView.as_view(), name="utilisateur-list-create"),
