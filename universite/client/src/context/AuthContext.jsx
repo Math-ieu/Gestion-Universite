@@ -31,8 +31,8 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  
-  // ✅ Connexion utilisateur
+
+  // ✅ Connexion utilisateur - Modifiée pour utiliser une route unique /dashboard
   const loginUser = async (email, password) => {
     const response = await fetch("http://127.0.0.1:8000/api/token/", {
       method: "POST",
@@ -50,22 +50,14 @@ export const AuthProvider = ({ children }) => {
       setAuthTokens(data);
       
       // Extraire les informations utilisateur directement des données reçues
-      // au lieu de décoder le token
       const userData = data.user;
       setUser(userData);
       
       // Stocker les données d'authentification dans le localStorage
       localStorage.setItem("authTokens", JSON.stringify(data));
       
-      // Redirection en fonction du rôle de l'utilisateur
-      const role = userData.role; // Prendre le rôle directement des données utilisateur
-      if (role === "etudiant") {
-        navigate("/etudiant");
-      } else if (role === "secretaire") {
-        navigate("/secretaire");
-      } else if (role === "enseignant") {
-        navigate("/enseignant");
-      }
+      // Rediriger vers le dashboard unique quelle que soit le rôle
+      navigate("/dashboard");
       
       swal.fire({
         title: "Connexion réussie",
@@ -189,6 +181,7 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
+  
   useEffect(() => {
     if (authTokens) {
       setUser(jwtDecode(authTokens.access));

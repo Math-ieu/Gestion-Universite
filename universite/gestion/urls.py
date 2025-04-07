@@ -7,9 +7,9 @@ from rest_framework_simplejwt.views import (
 urlpatterns = [ 
     
      # Liste et création
-    path("utilisateurs/", UtilisateurListCreateView.as_view(), name="utilisateur-list-create"),
+    path("utilisateurs/", UserListCreateView.as_view(), name="utilisateur-list-create"),
     # Détail, mise à jour et suppression
-    path("utilisateurs/<int:pk>/", UtilisateurRetrieveUpdateDestroyView.as_view(), name="utilisateur-detail"),
+    path("utilisateurs/<int:pk>/", UserRetrieveUpdateDestroyView.as_view(), name="utilisateur-detail"),
     
     path('cours/', CoursListCreate.as_view(), name='cours-list'),
     path('cours/<int:pk>/', CoursDetail.as_view(), name='cours-detail'),

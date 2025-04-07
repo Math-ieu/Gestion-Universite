@@ -1,12 +1,38 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
-from django.db.models.signals import post_save
+
+from django.contrib.auth.base_user import BaseUserManager
 
 
 # --------------------------- #
-#  MANAGER POUR LES UTILISATEURS
+#  MANAGER POUR LES UserS
 # --------------------------- #
-class Utilisateur(AbstractUser):
+
+
+class UserManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError('L\'adresse email est obligatoire')
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+        
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Le superuser doit avoir is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Le superuser doit avoir is_superuser=True.')
+        
+        return self.create_user(email, password, **extra_fields)
+    
+
+class User(AbstractUser):
     ROLE_CHOICES = [
         ('etudiant', 'Étudiant'),
         ('secretaire', 'Secrétaire'),
@@ -15,7 +41,7 @@ class Utilisateur(AbstractUser):
     # Champ d'authentification
     username = None  # Supprime le champ username
     email = models.EmailField(unique=True)
-
+ 
     # Champs de profil
     nom = models.CharField(max_length=100, blank=True, null=True)
     prenom = models.CharField(max_length=100, blank=True, null=True)
@@ -42,6 +68,10 @@ class Utilisateur(AbstractUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['role']
+    
+    # Utilisez le gestionnaire personnalisé
+    objects = UserManager()
+
 
     def __str__(self):
         if self.nom and self.prenom:
@@ -54,11 +84,6 @@ class Utilisateur(AbstractUser):
         return f"{self.prenom} {self.nom}"
 
     def save(self, *args, **kwargs):
-        """ Active automatiquement `is_staff` pour les secrétaires. """
-        if self.role == "secretaire":
-            self.is_staff = True
-        else:
-            self.is_staff = False
         super().save(*args, **kwargs)
 
     def is_etudiant(self):
@@ -95,7 +120,7 @@ class Cours(models.Model):
 class Seance(models.Model):
     cours = models.ForeignKey(Cours, on_delete=models.CASCADE)
     enseignant = models.ForeignKey(
-        Utilisateur, on_delete=models.CASCADE, limit_choices_to={'role': 'enseignant'})
+        User, on_delete=models.CASCADE, limit_choices_to={'role': 'enseignant'})
     duree = models.IntegerField()
     description = models.TextField()
     salle = models.CharField(max_length=10)
@@ -109,7 +134,7 @@ class Seance(models.Model):
 class CoursSemestre(models.Model):
     cours = models.ForeignKey(Cours, on_delete=models.CASCADE)
     enseignant = models.ForeignKey(
-        Utilisateur, on_delete=models.CASCADE, limit_choices_to={'role': 'enseignant'})
+        User, on_delete=models.CASCADE, limit_choices_to={'role': 'enseignant'})
     semestre = models.IntegerField()
     annee = models.IntegerField()
 
@@ -121,7 +146,7 @@ class CoursSemestre(models.Model):
 
 class Inscription(models.Model):
     etudiant = models.ForeignKey(
-        Utilisateur, on_delete=models.CASCADE, limit_choices_to={'role': 'etudiant'})
+        User, on_delete=models.CASCADE, limit_choices_to={'role': 'etudiant'})
     cours_semestre = models.ForeignKey(CoursSemestre, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -132,7 +157,7 @@ class Inscription(models.Model):
 
 class NoteExamen(models.Model):
     etudiant = models.ForeignKey(
-        Utilisateur, on_delete=models.CASCADE, limit_choices_to={'role': 'etudiant'})
+        User, on_delete=models.CASCADE, limit_choices_to={'role': 'etudiant'})
     cours = models.ForeignKey(Cours, on_delete=models.CASCADE)
     type_examen = models.CharField(max_length=20)
     note = models.DecimalField(max_digits=4, decimal_places=2)
@@ -146,7 +171,7 @@ class NoteExamen(models.Model):
 
 class NoteTDTP(models.Model):
     etudiant = models.ForeignKey(
-        Utilisateur, on_delete=models.CASCADE, limit_choices_to={'role': 'etudiant'})
+        User, on_delete=models.CASCADE, limit_choices_to={'role': 'etudiant'})
     seance = models.ForeignKey(Seance, on_delete=models.CASCADE)
     note = models.DecimalField(max_digits=4, decimal_places=2)
     explication = models.TextField()
@@ -159,7 +184,7 @@ class NoteTDTP(models.Model):
 
 class Exercice(models.Model):
     etudiant = models.ForeignKey(
-        Utilisateur, on_delete=models.CASCADE, limit_choices_to={'role': 'etudiant'})
+        User, on_delete=models.CASCADE, limit_choices_to={'role': 'etudiant'})
     seance = models.ForeignKey(Seance, on_delete=models.CASCADE)
     contenu = models.TextField()
 
@@ -171,7 +196,7 @@ class Exercice(models.Model):
 
 class Question(models.Model):
     etudiant = models.ForeignKey(
-        Utilisateur, on_delete=models.CASCADE, limit_choices_to={'role': 'etudiant'})
+        User, on_delete=models.CASCADE, limit_choices_to={'role': 'etudiant'})
     seance = models.ForeignKey(Seance, on_delete=models.CASCADE)
     contenu = models.TextField()
 
@@ -181,7 +206,7 @@ class Question(models.Model):
 
 class SoumissionExercice(models.Model):
     etudiant = models.ForeignKey(
-        Utilisateur, on_delete=models.CASCADE, limit_choices_to={'role': 'etudiant'})
+        User, on_delete=models.CASCADE, limit_choices_to={'role': 'etudiant'})
     exercice = models.ForeignKey("Exercice", on_delete=models.CASCADE)
     fichier = models.FileField(upload_to="soumissions/")
     date_soumission = models.DateTimeField(auto_now_add=True)

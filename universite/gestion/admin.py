@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import *
 
 # Enregistrement basique
-admin.site.register(Utilisateur)
+admin.site.register(User)
 admin.site.register(Cours)
 admin.site.register(Seance)
 admin.site.register(CoursSemestre)

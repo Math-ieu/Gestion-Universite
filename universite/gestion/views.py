@@ -7,8 +7,10 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth.hashers import make_password
 from .models import *
 from .serializers import *
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404 
 
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
@@ -26,24 +28,24 @@ class MyTokenObtainPairView(TokenObtainPairView):
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
 
 class RegisterView(generics.CreateAPIView):
-    queryset = Utilisateur.objects.all()
+    queryset = User.objects.all()
     permission_classes = (AllowAny,)
     serializer_class = RegisterSerializer
     
-class UtilisateurListCreateView(generics.ListCreateAPIView):
+class UserListCreateView(generics.ListCreateAPIView):
     """
-    Vue pour lister et créer des utilisateurs en filtrant par rôle.
-    Exemple : /api/utilisateurs/?role=etudiant
+    Vue pour lister et créer des Users en filtrant par rôle.
+    Exemple : /api/Users/?role=etudiant
     """ 
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]  # Authentification requise
 
     def get_queryset(self):
         """
-        Récupère les utilisateurs en fonction du rôle passé en paramètre GET.
+        Récupère les Users en fonction du rôle passé en paramètre GET.
         """
         role = self.request.query_params.get("role", None)
-        queryset = Utilisateur.objects.all()
+        queryset = User.objects.all()
 
         if role:
             queryset = queryset.filter(role=role)
@@ -51,35 +53,35 @@ class UtilisateurListCreateView(generics.ListCreateAPIView):
         return queryset
 
 
-class UtilisateurRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+class UserRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     """
-    Vue pour récupérer, mettre à jour et supprimer un utilisateur spécifique.
+    Vue pour récupérer, mettre à jour et supprimer un User spécifique.
     """
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
         """
-        Recherche un utilisateur par ID et vérifie le rôle passé en paramètre GET.
+        Recherche un User par ID et vérifie le rôle passé en paramètre GET.
         """
         role = self.request.query_params.get("role", None)
-        obj = get_object_or_404(Utilisateur, id=self.kwargs["pk"])
+        obj = get_object_or_404(User, id=self.kwargs["pk"])
 
         if role and obj.role != role:
-            self.permission_denied(self.request, message="Ce rôle ne correspond pas à cet utilisateur.")
+            self.permission_denied(self.request, message="Ce rôle ne correspond pas à cet User.")
 
         return obj
 
 
       # Autoriser tout le monde à accéder à cette vue
 
-class UtilisateurListCreate(generics.ListCreateAPIView):
-    queryset = Utilisateur.objects.all()
+class UserListCreate(generics.ListCreateAPIView):
+    queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
-class UtilisateurDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Utilisateur.objects.all()
+class UserDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 

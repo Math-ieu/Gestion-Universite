@@ -8,11 +8,9 @@ import {
   User,
   LockKeyhole,
   Phone,
-  MapPin,
   Eye,
   EyeOff,
   Calendar,
-  Briefcase,
 } from "lucide-react";
 import "./Registerpage.css";
 
@@ -23,11 +21,10 @@ const RegisterPage = () => {
     lastName: "",
     email: "",
     phoneNumber: "",
-    role: "",
     password: "",
     confirmPassword: "",
     annee: "",
-    fonction: "",
+    
   });
   const [showPassword, setShowPassword] = useState(false);
   const handleChange = (e) => {
@@ -50,10 +47,8 @@ const RegisterPage = () => {
       prenom: formData.firstName,
       password: formData.password,
       password2: formData.confirmPassword,
-      role: formData.role,
       tel: formData.phoneNumber || "",
-      annee: formData.role === "etudiant" ? formData.annee : undefined,
-      fonction: formData.role === "enseignant" ? formData.fonction : undefined,
+      annee:  formData.annee
     };
     
     registerUser(userData);
@@ -64,11 +59,10 @@ const RegisterPage = () => {
       lastName: "",
       email: "",
       phoneNumber: "",
-      role: "",
       password: "",
       confirmPassword: "",
       annee: "",
-      fonction: "",
+      
     });
   };
 
@@ -200,7 +194,7 @@ const RegisterPage = () => {
               />
             </div>
           </div>
-
+{/* 
           <div>
             <label
               htmlFor="role"
@@ -226,8 +220,10 @@ const RegisterPage = () => {
                 <option value="etudiant">Etudiant</option>
               </select>
             </div>
-          </div>
-          <div>
+          </div> */}
+
+
+          {/* <div>
             <label
               htmlFor="email"
               className="block text-sm font-medium text-gray-700"
@@ -248,7 +244,9 @@ const RegisterPage = () => {
                 className="mt-1 block w-full px-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
-          </div>
+          </div> */}
+
+
           <div>
             <label
               htmlFor="password"

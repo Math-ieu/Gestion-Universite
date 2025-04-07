@@ -21,7 +21,7 @@ export const StudentDashboard = () => {
                 <p className="text-gray-500">Register for new courses</p>
               </div>
             </div>
-          </Link>
+          </Link> 
 
           <Link
             to="/student/exercises"

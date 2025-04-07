@@ -1,13 +1,11 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { LoginPage } from "./views/Login/Loginpage";
-import RegisterPage  from "./views/Register/Registerpage";
-import { SecretaryDashboard } from "./views/Dashboards/Secretary/SecretaryDashboard";
-import { TeacherDashboard } from "./views/Dashboards/Teacher/TeacherDashboard";
-import { StudentDashboard } from "./views/Dashboards/Student/StudentDashboard";
+import RegisterPage from "./views/Register/Registerpage";
 import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./utils/PrivateRoute";
-import './App.css' // Import du composant PrivateRoute
+import DashboardRouter from "./views/components/DashboardRouter";
+import './App.css'
 
 function App() {
   return ( 
@@ -17,28 +15,12 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
-          {/* Routes protégées */}
+          {/* Route unique du dashboard qui utilise un routeur basé sur le rôle */}
           <Route
-            path="/secretaire/*"
+            path="/dashboard/*"
             element={
               <PrivateRoute>
-                <SecretaryDashboard />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/enseignant/*"
-            element={
-              <PrivateRoute>
-                <TeacherDashboard />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/etudiant/*"
-            element={
-              <PrivateRoute>
-                <StudentDashboard />
+                <DashboardRouter />
               </PrivateRoute>
             }
           />

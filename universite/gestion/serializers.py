@@ -6,25 +6,29 @@ from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
 import logging
 
+from django.contrib.auth import get_user_model
+User = get_user_model()
+
 
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=True, min_length=6)
+    password = serializers.CharField(
+        write_only=True, required=True, min_length=6)
     password2 = serializers.CharField(write_only=True, required=True)
-    
+
     class Meta:
-        model = Utilisateur
+        model = User
         fields = (
-            'email', 
-            'password', 
-            'password2', 
-            'nom', 
-            'prenom', 
-            'role', 
-            'annee', 
+            'email',
+            'password',
+            'password2',
+            'nom',
+            'prenom',
+            'role',
+            'annee',
             'tel',
             'fonction'
         )
-        
+
         extra_kwargs = {
             'nom': {'required': False, 'allow_blank': True},
             'prenom': {'required': False, 'allow_blank': True},
@@ -32,27 +36,27 @@ class RegisterSerializer(serializers.ModelSerializer):
             'fonction': {'required': False, 'allow_blank': True},
             'annee': {'required': False},
         }
-
+ 
     def validate(self, attrs):
         if attrs['password'] != attrs['password2']:
             raise serializers.ValidationError(
                 {"password": "Les mots de passe ne correspondent pas."}
             )
-        
+
         # Vérifier que l'email n'existe pas déjà
         email = attrs['email']
-        if Utilisateur.objects.filter(email=email).exists():
+        if User.objects.filter(email=email).exists():
             raise serializers.ValidationError(
-                {"email": "Un utilisateur avec cet email existe déjà."}
+                {"email": "Un User avec cet email existe déjà."}
             )
-            
-        # Si l'utilisateur est un étudiant, l'année devrait être renseignée
+
+        # Si l'User est un étudiant, l'année devrait être renseignée
         if attrs.get('role') == 'etudiant' and not attrs.get('annee'):
             raise serializers.ValidationError(
                 {"annee": "L'année est requise pour les étudiants."}
             )
-            
-        # Si l'utilisateur est un enseignant, la fonction devrait être renseignée
+
+        # Si l'User est un enseignant, la fonction devrait être renseignée
         if attrs.get('role') == 'enseignant' and not attrs.get('fonction'):
             raise serializers.ValidationError(
                 {"fonction": "La fonction est requise pour les enseignants."}
@@ -63,52 +67,66 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Supprimer password2 des données validées
         validated_data.pop('password2')
-        
+
         # Récupérer le mot de passe
         password = validated_data.pop('password')
-        
-        # Créer l'utilisateur sans le mot de passe
-        user = Utilisateur.objects.create(**validated_data)
-        
+
+        # Créer l'User sans le mot de passe
+        user = User.objects.create(**validated_data)
+
         # Définir le mot de passe avec la méthode sécurisée
         user.set_password(password)
         user.save()
 
         return user
 
+
 logger = logging.getLogger(__name__)
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = '__all__'
+
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
-    # Remplacer username par email
-    email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
-    
+    username_field = 'email'
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields[self.username_field] = serializers.EmailField()
         self.fields.pop('username', None)
+
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        # Ajout d'infos personnalisées au token JWT
+        token['role'] = user.role
+        token['email'] = user.email
+        token['nom'] = user.nom
+        token['prenom'] = user.prenom
+        return token
     
     def validate(self, attrs):
         # Récupérer email et password
         email = attrs.get('email')
         password = attrs.get('password')
-        
+
         # Log pour déboguer
         logger.debug(f"Tentative de connexion: email={email}")
-        
+
         if email and password:
-            from .models import Utilisateur
-            
+            from .models import User
+
             try:
-                user = Utilisateur.objects.get(email=email)
-                logger.debug(f"Utilisateur trouvé: {user.email}")
-                
+                user = User.objects.get(email=email)
+                logger.debug(f"User trouvé: {user.email}")
+
                 if not user.check_password(password):
                     raise serializers.ValidationError(
                         {"detail": "Mot de passe incorrect."}
                     )
 
-            except Utilisateur.DoesNotExist:
+            except User.DoesNotExist:
                 raise serializers.ValidationError(
                     {"detail": f"Aucun compte trouvé avec l'email: {email}"}
                 )
@@ -121,10 +139,10 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
             raise serializers.ValidationError(
                 {"detail": "Email et mot de passe sont requis."}
             )
-        
+
         # Obtenir le token JWT
-        refresh = self.get_token(user)
-        
+        refresh = self.get_token(user) 
+
         # Construire la réponse
         data = {
             'refresh': str(refresh),
@@ -137,28 +155,11 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
                 'prenom': user.prenom
             }
         }
-        
+
         return data
 
-    @classmethod
-    def get_token(cls, user):
-        token = super().get_token(user)
-        
-        # Ajouter des claims personnalisés
-        token['email'] = user.email
-        token['role'] = user.role
-        token['nom'] = user.nom if user.nom else ""
-        token['prenom'] = user.prenom if user.prenom else ""
-        
-        return token
 
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Utilisateur
-        fields = '__all__' 
-
-    
 class CoursSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cours
