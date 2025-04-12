@@ -50,13 +50,20 @@ class User(AbstractUser):
     # Champs spécifiques aux rôles
     role = models.CharField(
         max_length=20, choices=ROLE_CHOICES, default="etudiant")
-    annee = models.IntegerField(blank=True, null=True)  # Pour étudiant
+    anneeinscrit = models.CharField(max_length=4, blank=True, null=True)  # Pour étudiant
+    
     # Pour enseignant/secrétaire
     fonction = models.CharField(max_length=50, blank=True, null=True)
+    
+    filiere = models.CharField(max_length=50, blank=True, null=True)  # Pour étudiant
+    anneeetude = models.CharField(max_length=4, blank=True, null=True) 
+    
+    datedenaissance = models.DateField(blank=True, null=True)  # Pour étudiant
+    # Pour étudiant
 
     # Modification des related_name pour éviter les conflits
     groups = models.ManyToManyField(
-        Group,
+        Group, 
         related_name="custom_user_set",
         blank=True
     )
@@ -101,61 +108,47 @@ class User(AbstractUser):
 
 # Modèle des cours
 class Cours(models.Model):
-    TYPES_COURS = [
-        ('CM', 'Cours Magistral'),
-        ('TP', 'Travaux Pratiques'),
-        ('TD', 'Travaux Dirigés'),
-    ]
+    
     titre = models.CharField(max_length=50)
     description = models.TextField()
-    heures = models.IntegerField()
-    type_cours = models.CharField(max_length=2, choices=TYPES_COURS)
-
+    volumehoraire = models.DecimalField(max_digits=4, decimal_places=2)
+    type_cours = models.CharField(max_length=20)
+    semestre = models.CharField(max_length=10) 
+    anneeetude = models.CharField(max_length=4)
+    enseignant = models.ForeignKey(
+        User, on_delete=models.CASCADE, limit_choices_to={'role': 'enseignant'})
+    
     def __str__(self):
         return self.titre
 
 # Modèle des séances
-
-
 class Seance(models.Model):
     cours = models.ForeignKey(Cours, on_delete=models.CASCADE)
-    enseignant = models.ForeignKey(
-        User, on_delete=models.CASCADE, limit_choices_to={'role': 'enseignant'})
     duree = models.IntegerField()
-    description = models.TextField()
+    date = models.DateField()
+    heure_debut = models.TimeField()
     salle = models.CharField(max_length=10)
-
+    
     def __str__(self):
         return f"{self.cours.titre} - {self.salle}"
 
 # Modèle des cours semestre
 
 
-class CoursSemestre(models.Model):
-    cours = models.ForeignKey(Cours, on_delete=models.CASCADE)
-    enseignant = models.ForeignKey(
-        User, on_delete=models.CASCADE, limit_choices_to={'role': 'enseignant'})
-    semestre = models.IntegerField()
-    annee = models.IntegerField()
-
-    def __str__(self):
-        return f"{self.cours.titre} - Semestre {self.semestre}"
-
 # Modèle des inscriptions
-
 
 class Inscription(models.Model):
     etudiant = models.ForeignKey(
         User, on_delete=models.CASCADE, limit_choices_to={'role': 'etudiant'})
-    cours_semestre = models.ForeignKey(CoursSemestre, on_delete=models.CASCADE)
+    cours = models.ForeignKey(Cours, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.etudiant.nom} inscrit à {self.cours_semestre}"
+        return f"{self.etudiant.nom} inscrit à {self.cours.titre}"
 
 # Modèle des notes d'examen
 
 
-class NoteExamen(models.Model):
+class Note(models.Model):
     etudiant = models.ForeignKey(
         User, on_delete=models.CASCADE, limit_choices_to={'role': 'etudiant'})
     cours = models.ForeignKey(Cours, on_delete=models.CASCADE)
@@ -166,34 +159,17 @@ class NoteExamen(models.Model):
     def __str__(self):
         return f"{self.etudiant.nom} - {self.cours.titre} : {self.note}"
 
-# Modèle des notes de TD/TP
-
-
-class NoteTDTP(models.Model):
-    etudiant = models.ForeignKey(
-        User, on_delete=models.CASCADE, limit_choices_to={'role': 'etudiant'})
-    seance = models.ForeignKey(Seance, on_delete=models.CASCADE)
-    note = models.DecimalField(max_digits=4, decimal_places=2)
-    explication = models.TextField()
-
-    def __str__(self):
-        return f"{self.etudiant.nom} - {self.seance.cours.titre} : {self.note}"
-
-# Modèle des exercices
-
-
 class Exercice(models.Model):
-    etudiant = models.ForeignKey(
-        User, on_delete=models.CASCADE, limit_choices_to={'role': 'etudiant'})
-    seance = models.ForeignKey(Seance, on_delete=models.CASCADE)
-    contenu = models.TextField()
+    cours = models.ForeignKey(Cours, on_delete=models.CASCADE)
+    description = models.TextField()
+    titre_exercice = models.CharField(max_length=50)
+    date_limite = models.DateTimeField()
+    type_exercice = models.CharField(max_length=20)
 
     def __str__(self):
-        return f"Exercice de {self.etudiant.nom} - {self.seance.cours.titre}"
+        return f"{self.cours.titre}"
 
 # Modèle des questions
-
-
 class Question(models.Model):
     etudiant = models.ForeignKey(
         User, on_delete=models.CASCADE, limit_choices_to={'role': 'etudiant'})
@@ -207,7 +183,7 @@ class Question(models.Model):
 class SoumissionExercice(models.Model):
     etudiant = models.ForeignKey(
         User, on_delete=models.CASCADE, limit_choices_to={'role': 'etudiant'})
-    exercice = models.ForeignKey("Exercice", on_delete=models.CASCADE)
+    exercice = models.ForeignKey(Exercice, on_delete=models.CASCADE)
     fichier = models.FileField(upload_to="soumissions/")
     date_soumission = models.DateTimeField(auto_now_add=True)
 

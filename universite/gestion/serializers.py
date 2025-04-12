@@ -24,19 +24,35 @@ class RegisterSerializer(serializers.ModelSerializer):
             'nom',
             'prenom',
             'role',
-            'annee',
             'tel',
-            'fonction'
+            'fonction',
+            'filiere',
+            'anneeetude',
+            'anneeinscrit',
+            'datedenaissance'
         )
 
         extra_kwargs = {
+            # CharField
             'nom': {'required': False, 'allow_blank': True},
+            # CharField
             'prenom': {'required': False, 'allow_blank': True},
+            # CharField
             'tel': {'required': False, 'allow_blank': True},
+            # CharField
             'fonction': {'required': False, 'allow_blank': True},
-            'annee': {'required': False},
+
+            # DateField
+            'anneeinscrit': {'required': False, 'allow_null': True},
+            # DateField
+            'datedenaissance': {'required': False, 'allow_null': True},
+
+            # ForeignKey ou IntegerField ?
+            'filiere': {'required': False, 'allow_null': True},
+            # IntegerField ?
+            'anneeetude': {'required': False, 'allow_null': True},
         }
- 
+
     def validate(self, attrs):
         if attrs['password'] != attrs['password2']:
             raise serializers.ValidationError(
@@ -83,10 +99,12 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 logger = logging.getLogger(__name__)
 
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = '__all__'
+
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     username_field = 'email'
@@ -105,7 +123,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['nom'] = user.nom
         token['prenom'] = user.prenom
         return token
-    
+
     def validate(self, attrs):
         # Récupérer email et password
         email = attrs.get('email')
@@ -141,7 +159,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
             )
 
         # Obtenir le token JWT
-        refresh = self.get_token(user) 
+        refresh = self.get_token(user)
 
         # Construire la réponse
         data = {
@@ -159,7 +177,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         return data
 
 
-
 class CoursSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cours
@@ -172,27 +189,15 @@ class SeanceSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class CoursSemestreSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CoursSemestre
-        fields = '__all__'
-
-
 class InscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Inscription
         fields = '__all__'
 
 
-class NoteExamenSerializer(serializers.ModelSerializer):
+class NoteSerializer(serializers.ModelSerializer):
     class Meta:
-        model = NoteExamen
-        fields = '__all__'
-
-
-class NoteTDTPSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = NoteTDTP
+        model = Note
         fields = '__all__'
 
 

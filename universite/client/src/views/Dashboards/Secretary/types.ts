@@ -1,38 +1,49 @@
 export type TeacherRole = 'Vacataire' | 'ATER' | 'MdC' | 'Professeur';
-export type CourseType = 'CM' | 'TP' | 'TD';
+export type CourseType = 'CM' | 'TP' | 'TD' 
+;
+export type SemestreType = 'Semestre 1' | 'Semestre 2';
+export type NiveauEtude = 'Licence 1' | 'Licence 2' | 'Licence 3' | 'Master 1' | 'Master 2';
 
 export interface Teacher {
   id?: string;
-  firstName: string;
-  lastName: string;
-  phone: string;
-  role: TeacherRole;
+  prenom: string;
+  nom: string;
+  tel: string;
+  fonction: TeacherRole;
+  password: string;
+  password2: string;
+  datedenaissance: string;
+  anneeinscrit: string;
+  email: string;
+  role:string
 }
 
 export interface Student {
   id?: string;
-  firstName: string;
-  lastName: string;
-  studentNumber: string;
+  prenom: string;
+  nom: string;
+  anneeinscrit: string;
   email: string;
-  dateOfBirth: string;
+  datedenaissance: string;
+  password: string;
+  password2: string;
+  filiere: string;
+  anneeetude: string;
+  role:string
+
 }
 
 export interface Course {
   id?: string;
-  title: string;
+  titre: string;
   description: string;
-  hours: number;
-  type: CourseType;
+  volumehoraire: number;
+  type_cours: string ;
+  semestre: string;
+  anneeetude: string;
+  enseignant: number | null; // ID de l'enseignant
 }
 
-export interface SemesterCourse {
-  id?: string;
-  teacherId: string;
-  courseId: string;
-  semester: 1 | 2;
-  year: number;
-}
 
 export interface ApiResponse<T> {
   data: T[];

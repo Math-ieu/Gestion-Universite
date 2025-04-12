@@ -13,7 +13,7 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 class MyTokenObtainPairView(TokenObtainPairView):
-    serializer_class = MyTokenObtainPairSerializer
+    serializer_class = MyTokenObtainPairSerializer 
     
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -75,11 +75,6 @@ class UserRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
       # Autoriser tout le monde à accéder à cette vue
 
-class UserListCreate(generics.ListCreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
-
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -88,7 +83,47 @@ class UserDetail(generics.RetrieveUpdateDestroyAPIView):
 # ========================
 # CRUD pour Etudiant
 # ========================
+# ========================
+# CRUD pour Enseignants
+# ========================
+class TeacherListCreate(generics.ListCreateAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        return User.objects.filter(role='enseignant')
+
+    def perform_create(self, serializer):
+        # Assurez-vous que le rôle est 'enseignant' lors de la création
+        serializer.save(role='enseignant')
+
+class TeacherDetail(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return User.objects.filter(role='enseignant')
+
+# ========================
+# CRUD pour Étudiants
+# ========================
+class StudentListCreate(generics.ListCreateAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return User.objects.filter(role='etudiant')
+
+    def perform_create(self, serializer):
+        # Assurez-vous que le rôle est 'etudiant' lors de la création
+        serializer.save(role='etudiant')
+
+class StudentDetail(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return User.objects.filter(role='etudiant')
 # ========================
 # CRUD pour Cours
 # ========================
@@ -115,18 +150,8 @@ class SeanceDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = SeanceSerializer
 
-# ========================
-# CRUD pour CoursSemestre
-# ========================
-class CoursSemestreListCreate(generics.ListCreateAPIView):
-    queryset = CoursSemestre.objects.all()
-    permission_classes = [IsAuthenticated]
-    serializer_class = CoursSemestreSerializer
 
-class CoursSemestreDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = CoursSemestre.objects.all()
-    permission_classes = [IsAuthenticated]
-    serializer_class = CoursSemestreSerializer
+
 
 # ========================
 # CRUD pour Inscription
@@ -144,28 +169,20 @@ class InscriptionDetail(generics.RetrieveUpdateDestroyAPIView):
 # ========================
 # CRUD pour NoteExamen
 # ========================
-class NoteExamenListCreate(generics.ListCreateAPIView):
-    queryset = NoteExamen.objects.all()
-    serializer_class = NoteExamenSerializer
+class NoteListCreate(generics.ListCreateAPIView):
+    queryset = Note.objects.all()
+    serializer_class = NoteSerializer
     permission_classes = [IsAuthenticated]
 
-class NoteExamenDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = NoteExamen.objects.all()
+class NoteDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Note.objects.all()
     permission_classes = [IsAuthenticated]
-    serializer_class = NoteExamenSerializer
+    serializer_class = NoteSerializer
 
 # ========================
 # CRUD pour NoteTDTP
 # ========================
-class NoteTDTPListCreate(generics.ListCreateAPIView):
-    queryset = NoteTDTP.objects.all()
-    permission_classes = [IsAuthenticated]
-    serializer_class = NoteTDTPSerializer
 
-class NoteTDTPDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = NoteTDTP.objects.all()
-    permission_classes = [IsAuthenticated]
-    serializer_class = NoteTDTPSerializer
 
 # ========================
 # CRUD pour Exercice

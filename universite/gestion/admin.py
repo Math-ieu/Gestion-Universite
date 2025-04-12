@@ -3,12 +3,11 @@ from .models import *
 
 # Enregistrement basique
 admin.site.register(User)
-admin.site.register(Cours)
 admin.site.register(Seance)
-admin.site.register(CoursSemestre)
+admin.site.register(Cours)
 admin.site.register(Inscription)
-admin.site.register(NoteExamen)
-admin.site.register(NoteTDTP)
+admin.site.register(SoumissionExercice)
+admin.site.register(Note)
 admin.site.register(Exercice)
 admin.site.register(Question)
 

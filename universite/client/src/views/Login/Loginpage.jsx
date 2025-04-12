@@ -15,7 +15,7 @@ export const LoginPage = () => {
   };
 
   const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
+    setShowPassword(!showPassword); 
   };
 
   return (
@@ -48,6 +48,7 @@ export const LoginPage = () => {
               />
             </div>
           </div>
+
           <div>
             <label
               htmlFor="password"
@@ -79,6 +80,7 @@ export const LoginPage = () => {
               </button>
             </div>
           </div>
+          
           <button
             type="submit"
             id="login-button"
