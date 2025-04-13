@@ -41,7 +41,7 @@ export interface Course {
   type_cours: string ;
   semestre: string;
   anneeetude: string;
-  enseignant: number | null; // ID de l'enseignant
+  enseignant_id: number | null; // ID de l'enseignant
 }
 
 

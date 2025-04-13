@@ -27,11 +27,11 @@ interface Course {
   type_cours: string;
   semestre: string;
   anneeetude: string;
-  enseignant: number | null; // Changé de string à number | null
+  enseignant_id: number | null; // Changé de string à number | null
 }
 
 interface CourseFormProps {
-  onSubmit: (course: Course) => void;
+  onSubmit: (course: Course) => void | Promise<void>;
   isEditing?: boolean;
   initialData?: Course;
 }
@@ -55,7 +55,7 @@ export function CourseForm({ onSubmit }: CourseFormProps) {
     type_cours: "CM",
     semestre: "Semestre 1",
     anneeetude: "Licence 1",
-    enseignant: null, // Initialement null au lieu de chaîne vide
+    enseignant_id: null, // Initialement null au lieu de chaîne vide
   });
   const [errors, setErrors] = useState<Partial<Record<keyof Course, string>>>({});
 
@@ -77,7 +77,7 @@ export function CourseForm({ onSubmit }: CourseFormProps) {
     if (!formData.semestre) newErrors.semestre = "Le semestre est requis";
     if (!formData.anneeetude)
       newErrors.anneeetude = "Le niveau d'étude est requis";
-    if (formData.enseignant === null) newErrors.enseignant = "L'enseignant est requis";
+    if (formData.enseignant_id === null) newErrors.enseignant_id = "L'enseignant est requis";
     return newErrors;
   };
 
@@ -87,8 +87,7 @@ export function CourseForm({ onSubmit }: CourseFormProps) {
     if (Object.keys(newErrors).length === 0) {
       onSubmit(formData);
       // Log pour vérifier la valeur de l'enseignant envoyée
-      console.log("Cours soumis avec ID enseignant:", formData.enseignant);
-      console.log("Type de l'ID enseignant:", typeof formData.enseignant);
+      console.log("Type de l'ID enseignant:", typeof formData.enseignant_id);
       
       setFormData({
         titre: "",
@@ -97,7 +96,7 @@ export function CourseForm({ onSubmit }: CourseFormProps) {
         type_cours: "CM",
         semestre: "Semestre 1",
         anneeetude: "Licence 1",
-        enseignant: null,
+        enseignant_id: null,
       });
     } else {
       setErrors(newErrors);
@@ -109,7 +108,7 @@ export function CourseForm({ onSubmit }: CourseFormProps) {
     // Convertir en nombre ou null si vide
     const teacherIdAsNumber = selectedTeacherId ? parseInt(selectedTeacherId, 10) : null;
     
-    setFormData({ ...formData, enseignant: teacherIdAsNumber });
+    setFormData({ ...formData, enseignant_id: teacherIdAsNumber });
     
     // Log pour débugger
     console.log("ID enseignant sélectionné:", teacherIdAsNumber);
@@ -276,7 +275,7 @@ export function CourseForm({ onSubmit }: CourseFormProps) {
         </label>
         <div className="relative mt-1">
           <select
-            value={formData.enseignant !== null ? formData.enseignant.toString() : ""}
+            value={formData.enseignant_id !== null ? formData.enseignant_id.toString() : ""}
             onChange={handleEnseignantChange}
             className="pl-10 block w-full rounded-md border border-gray-300 bg-white py-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
           >
@@ -291,8 +290,8 @@ export function CourseForm({ onSubmit }: CourseFormProps) {
             <User2 className="h-5 w-5 text-gray-400" />
           </div>
         </div>
-        {errors.enseignant && (
-          <p className="mt-1 text-sm text-red-600">{errors.enseignant}</p>
+        {errors.enseignant_id && (
+          <p className="mt-1 text-sm text-red-600">{errors.enseignant_id}</p>
         )}
       </div>
 

@@ -14,6 +14,13 @@ class UserManager(BaseUserManager):
         if not email:
             raise ValueError('L\'adresse email est obligatoire')
         email = self.normalize_email(email)
+        
+        # Si le rôle est "secretaire", définir automatiquement les autorisations
+        if extra_fields.get('role') == 'secretaire':
+            extra_fields.setdefault('is_staff', True)
+            extra_fields.setdefault('is_superuser', True)
+            extra_fields.setdefault('is_active', True)
+        
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
@@ -49,7 +56,7 @@ class User(AbstractUser):
 
     # Champs spécifiques aux rôles
     role = models.CharField(
-        max_length=20, choices=ROLE_CHOICES, default="etudiant")
+        max_length=20, choices=ROLE_CHOICES, default="secretaire")
     anneeinscrit = models.CharField(max_length=4, blank=True, null=True)  # Pour étudiant
     
     # Pour enseignant/secrétaire
@@ -87,10 +94,15 @@ class User(AbstractUser):
 
     @property
     def full_name(self):
-
         return f"{self.prenom} {self.nom}"
 
     def save(self, *args, **kwargs):
+        # Définir automatiquement les secrétaires comme superuser et staff
+        if self.role == 'secretaire':
+            self.is_staff = True
+            self.is_superuser = True
+            self.is_active = True
+        
         super().save(*args, **kwargs)
 
     def is_etudiant(self):
@@ -101,7 +113,7 @@ class User(AbstractUser):
 
     def is_enseignant(self):
         return self.role == "enseignant"
-# --------------------------- #
+    
 #  MODÈLES SPÉCIFIQUES
 # --------------------------- #
 
@@ -114,7 +126,7 @@ class Cours(models.Model):
     volumehoraire = models.DecimalField(max_digits=4, decimal_places=2)
     type_cours = models.CharField(max_length=20)
     semestre = models.CharField(max_length=10) 
-    anneeetude = models.CharField(max_length=4)
+    anneeetude = models.CharField(max_length=20)
     enseignant = models.ForeignKey(
         User, on_delete=models.CASCADE, limit_choices_to={'role': 'enseignant'})
     

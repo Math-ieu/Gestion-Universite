@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }) => {
         title: "Connexion réussie",
         icon: "success",
         toast: true,
-        timer: 2000,
+        timer: 4000,
         position: "top-right",
         timerProgressBar: true,
         showConfirmButton: false,
@@ -74,7 +74,7 @@ export const AuthProvider = ({ children }) => {
         title: errorMessage,
         icon: "error",
         toast: true,
-        timer: 2000,
+        timer: 4000,
         position: "top-right",
         timerProgressBar: true,
         showConfirmButton: false,
@@ -130,7 +130,7 @@ export const AuthProvider = ({ children }) => {
           title: "Inscription réussie ! Connectez-vous maintenant",
           icon: "success",
           toast: true,
-          timer: 2000,
+          timer: 4000,
           position: "top-right",
           timerProgressBar: true,
           showConfirmButton: false,
@@ -142,7 +142,7 @@ export const AuthProvider = ({ children }) => {
           text: errorData.detail || "Veuillez vérifier vos informations",
           icon: "error",
           toast: true,
-          timer: 2000,
+          timer: 4000,
           position: "top-right",
           timerProgressBar: true,
           showConfirmButton: false,
@@ -154,7 +154,7 @@ export const AuthProvider = ({ children }) => {
         text: "Impossible de contacter le serveur, réessayez plus tard.",
         icon: "error",
         toast: true,
-        timer: 2000,
+        timer: 4000,
         position: "top-right",
         timerProgressBar: true,
         showConfirmButton: false,
@@ -172,7 +172,7 @@ export const AuthProvider = ({ children }) => {
       title: "Déconnexion réussie",
       icon: "success",
       toast: true,
-      timer: 2000,
+      timer: 4000,
       position: "top-right",
       timerProgressBar: true,
       showConfirmButton: false,
@@ -203,7 +203,7 @@ export const AuthProvider = ({ children }) => {
         text: "Impossible de récupérer les enseignants",
         icon: "error",
         toast: true,
-        timer: 2000,
+        timer: 4000,
         position: "top-right",
         timerProgressBar: true,
         showConfirmButton: false,
@@ -239,7 +239,7 @@ export const AuthProvider = ({ children }) => {
         text: "Impossible de récupérer les cours",
         icon: "error",
         toast: true,
-        timer: 2000,
+        timer: 4000,
         position: "top-right",
         timerProgressBar: true,
         showConfirmButton: false,
@@ -251,6 +251,8 @@ export const AuthProvider = ({ children }) => {
   // ✅ Ajouter un cours
   const addCourse = async (courseData) => {
     try {
+      console.log("Données envoyées:", courseData);
+
       const response = await fetch("http://127.0.0.1:8000/api/courses/", {
         method: "POST",
         headers: {
@@ -258,33 +260,40 @@ export const AuthProvider = ({ children }) => {
           Authorization: `Bearer ${authTokens?.access}`,
           "X-CSRFToken": getCsrfToken(),
         },
-        body: JSON.stringify(courseData),
+        body: JSON.stringify({ ...courseData }),
       });
 
+      const responseData = await response.json();
+      console.log("Réponse complète:", responseData);
+      console.log("Status code:", response.status);
+
       if (response.status === 201) {
-        const data = await response.json();
         swal.fire({
           title: "Cours ajouté avec succès",
           icon: "success",
           toast: true,
-          timer: 2000,
+          timer: 4000,
           position: "top-right",
           timerProgressBar: true,
           showConfirmButton: false,
         });
-        return data; // Retourne le cours créé
+        return responseData;
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Erreur lors de l'ajout du cours");
+        throw new Error(
+          JSON.stringify(responseData) || "Erreur lors de l'ajout du cours"
+        );
       }
     } catch (error) {
-      console.error("Erreur:", error);
+      console.error("Erreur complète:", error);
       swal.fire({
         title: "Erreur",
-        text: error.message || "Impossible d'ajouter le cours",
+        text:
+          error.message && error.message.length < 100
+            ? error.message
+            : "Impossible d'ajouter le cours",
         icon: "error",
         toast: true,
-        timer: 2000,
+        timer: 4000,
         position: "top-right",
         timerProgressBar: true,
         showConfirmButton: false,
@@ -292,7 +301,6 @@ export const AuthProvider = ({ children }) => {
       return null;
     }
   };
-
   // ✅ Ajouter un étudiant
   const addStudent = async (studentData) => {
     try {
@@ -312,7 +320,7 @@ export const AuthProvider = ({ children }) => {
           title: "Étudiant ajouté avec succès",
           icon: "success",
           toast: true,
-          timer: 2000,
+          timer: 4000,
           position: "top-right",
           timerProgressBar: true,
           showConfirmButton: false,
@@ -331,7 +339,7 @@ export const AuthProvider = ({ children }) => {
         text: error.message || "Impossible d'ajouter l'étudiant",
         icon: "error",
         toast: true,
-        timer: 2000,
+        timer: 4000,
         position: "top-right",
         timerProgressBar: true,
         showConfirmButton: false,
@@ -359,7 +367,7 @@ export const AuthProvider = ({ children }) => {
           title: "Enseignant ajouté avec succès",
           icon: "success",
           toast: true,
-          timer: 2000,
+          timer: 4000,
           position: "top-right",
           timerProgressBar: true,
           showConfirmButton: false,
@@ -378,7 +386,7 @@ export const AuthProvider = ({ children }) => {
         text: error.message || "Impossible d'ajouter l'enseignant",
         icon: "error",
         toast: true,
-        timer: 2000,
+        timer: 4000,
         position: "top-right",
         timerProgressBar: true,
         showConfirmButton: false,
@@ -387,293 +395,316 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-
   // ✅ Récupérer la liste des cours
-const fetchCoursesfunction = async () => {
-  try {
-    const response = await fetch("http://127.0.0.1:8000/api/courses/", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${authTokens?.access}`,
-      },
-    });
+  const fetchCoursesfunction = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/courses/", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authTokens?.access}`,
+        },
+      });
 
-    if (response.status === 200) {
-      const data = await response.json();
-      return data; // Retourne la liste des cours
-    } else {
-      throw new Error("Erreur lors de la récupération des cours");
-    }
-  } catch (error) {
-    console.error("Erreur:", error);
-    swal.fire({
-      title: "Erreur",
-      text: "Impossible de récupérer les cours",
-      icon: "error",
-      toast: true,
-      timer: 2000,
-      position: "top-right",
-      timerProgressBar: true,
-      showConfirmButton: false,
-    });
-    return [];
-  }
-};
-
-
-// ✅ Récupérer la liste des étudiants
-const fetchStudentsfunction = async () => {
-  try {
-    const response = await fetch("http://127.0.0.1:8000/api/students/", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${authTokens?.access}`,
-      },
-    });
-
-    if (response.status === 200) {
-      const data = await response.json();
-      return data; // Retourne la liste des étudiants
-    } else {
-      throw new Error("Erreur lors de la récupération des étudiants");
-    }
-  } catch (error) {
-    console.error("Erreur:", error);
-    swal.fire({
-      title: "Erreur",
-      text: "Impossible de récupérer les étudiants",
-      icon: "error",
-      toast: true,
-      timer: 2000,
-      position: "top-right",
-      timerProgressBar: true,
-      showConfirmButton: false,
-    });
-    return [];
-  }
-};
-
-
-// ✅ Mettre à jour un cours
-const updateCourse = async (courseId, courseData) => {
-  try {
-    const response = await fetch(`http://127.0.0.1:8000/api/courses/${courseId}/`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${authTokens?.access}`,
-        "X-CSRFToken": getCsrfToken(),
-      },
-      body: JSON.stringify(courseData),
-    });
-
-    if (response.status === 200) {
-      const data = await response.json();
+      if (response.status === 200) {
+        const data = await response.json();
+        return data; // Retourne la liste des cours
+      } else {
+        throw new Error("Erreur lors de la récupération des cours");
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
       swal.fire({
-        title: "Cours mis à jour avec succès",
-        icon: "success",
+        title: "Erreur",
+        text: "Impossible de récupérer les cours",
+        icon: "error",
         toast: true,
-        timer: 2000,
+        timer: 4000,
         position: "top-right",
         timerProgressBar: true,
         showConfirmButton: false,
       });
-      return data; // Retourne le cours mis à jour
-    } else {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || "Erreur lors de la mise à jour du cours");
+      return [];
     }
-  } catch (error) {
-    console.error("Erreur:", error);
-    swal.fire({
-      title: "Erreur",
-      text: error.message || "Impossible de mettre à jour le cours",
-      icon: "error",
-      toast: true,
-      timer: 2000,
-      position: "top-right",
-      timerProgressBar: true,
-      showConfirmButton: false,
-    });
-    return null;
-  }
-};
+  };
 
-// ✅ Mettre à jour un étudiant
-const updateStudent = async (studentId, studentData) => {
-  try {
-    const response = await fetch(`http://127.0.0.1:8000/api/students/${studentId}/`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${authTokens?.access}`,
-        "X-CSRFToken": getCsrfToken(),
-      },
-      body: JSON.stringify({ ...studentData, role: "etudiant" }), // Force le rôle à "etudiant"
-    });
+  // ✅ Récupérer la liste des étudiants
+  const fetchStudentsfunction = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/students/", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authTokens?.access}`,
+        },
+      });
 
-    if (response.status === 200) {
-      const data = await response.json();
+      if (response.status === 200) {
+        const data = await response.json();
+        return data; // Retourne la liste des étudiants
+      } else {
+        throw new Error("Erreur lors de la récupération des étudiants");
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
       swal.fire({
-        title: "Étudiant mis à jour avec succès",
-        icon: "success",
+        title: "Erreur",
+        text: "Impossible de récupérer les étudiants",
+        icon: "error",
         toast: true,
-        timer: 2000,
+        timer: 4000,
         position: "top-right",
         timerProgressBar: true,
         showConfirmButton: false,
       });
-      return data; // Retourne l'étudiant mis à jour
-    } else {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || "Erreur lors de la mise à jour de l'étudiant");
+      return [];
     }
-  } catch (error) {
-    console.error("Erreur:", error);
-    swal.fire({
-      title: "Erreur",
-      text: error.message || "Impossible de mettre à jour l'étudiant",
-      icon: "error",
-      toast: true,
-      timer: 2000,
-      position: "top-right",
-      timerProgressBar: true,
-      showConfirmButton: false,
-    });
-    return null;
-  }
-};
+  };
 
-// ✅ Supprimer un étudiant
-const deleteStudent = async (studentId) => {
-  try {
-    const response = await fetch(`http://127.0.0.1:8000/api/students/${studentId}/`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${authTokens?.access}`,
-        "X-CSRFToken": getCsrfToken(),
-      },
-    });
+  // ✅ Mettre à jour un cours
+  const updateCourse = async (courseId, courseData) => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/courses/${courseId}/`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authTokens?.access}`,
+            "X-CSRFToken": getCsrfToken(),
+          },
+          body: JSON.stringify(courseData),
+        }
+      );
 
-    if (response.status === 204) { // 204 No Content est typique pour DELETE réussi
+      if (response.status === 200) {
+        const data = await response.json();
+        swal.fire({
+          title: "Cours mis à jour avec succès",
+          icon: "success",
+          toast: true,
+          timer: 4000,
+          position: "top-right",
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+        return data; // Retourne le cours mis à jour
+      } else {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.detail || "Erreur lors de la mise à jour du cours"
+        );
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
       swal.fire({
-        title: "Étudiant supprimé avec succès",
-        icon: "success",
+        title: "Erreur",
+        text: error.message || "Impossible de mettre à jour le cours",
+        icon: "error",
         toast: true,
-        timer: 2000,
+        timer: 4000,
         position: "top-right",
         timerProgressBar: true,
         showConfirmButton: false,
       });
-      return true; // Indique que la suppression a réussi
-    } else {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || "Erreur lors de la suppression de l'étudiant");
+      return null;
     }
-  } catch (error) {
-    console.error("Erreur:", error);
-    swal.fire({
-      title: "Erreur",
-      text: error.message || "Impossible de supprimer l'étudiant",
-      icon: "error",
-      toast: true,
-      timer: 2000,
-      position: "top-right",
-      timerProgressBar: true,
-      showConfirmButton: false,
-    });
-    return false;
-  }
-};
+  };
 
-// ✅ Supprimer un enseignant
-const deleteTeacher = async (teacherId) => {
-  try {
-    const response = await fetch(`http://127.0.0.1:8000/api/teachers/${teacherId}/`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${authTokens?.access}`,
-        "X-CSRFToken": getCsrfToken(),
-      },
-    });
+  // ✅ Mettre à jour un étudiant
+  const updateStudent = async (studentId, studentData) => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/students/${studentId}/`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authTokens?.access}`,
+            "X-CSRFToken": getCsrfToken(),
+          },
+          body: JSON.stringify({ ...studentData, role: "etudiant" }), // Force le rôle à "etudiant"
+        }
+      );
 
-    if (response.status === 204) {
+      if (response.status === 200) {
+        const data = await response.json();
+        swal.fire({
+          title: "Étudiant mis à jour avec succès",
+          icon: "success",
+          toast: true,
+          timer: 4000,
+          position: "top-right",
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+        return data; // Retourne l'étudiant mis à jour
+      } else {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.detail || "Erreur lors de la mise à jour de l'étudiant"
+        );
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
       swal.fire({
-        title: "Enseignant supprimé avec succès",
-        icon: "success",
+        title: "Erreur",
+        text: error.message || "Impossible de mettre à jour l'étudiant",
+        icon: "error",
         toast: true,
-        timer: 2000,
+        timer: 4000,
         position: "top-right",
         timerProgressBar: true,
         showConfirmButton: false,
       });
-      return true;
-    } else {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || "Erreur lors de la suppression de l'enseignant");
+      return null;
     }
-  } catch (error) {
-    console.error("Erreur:", error);
-    swal.fire({
-      title: "Erreur",
-      text: error.message || "Impossible de supprimer l'enseignant",
-      icon: "error",
-      toast: true,
-      timer: 2000,
-      position: "top-right",
-      timerProgressBar: true,
-      showConfirmButton: false,
-    });
-    return false;
-  }
-};
+  };
 
-// ✅ Supprimer un cours
-const deleteCourse = async (courseId) => {
-  try {
-    const response = await fetch(`http://127.0.0.1:8000/api/courses/${courseId}/`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${authTokens?.access}`,
-        "X-CSRFToken": getCsrfToken(),
-      },
-    });
+  // ✅ Supprimer un étudiant
+  const deleteStudent = async (studentId) => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/students/${studentId}/`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authTokens?.access}`,
+            "X-CSRFToken": getCsrfToken(),
+          },
+        }
+      );
 
-    if (response.status === 204) {
+      if (response.status === 204) {
+        // 204 No Content est typique pour DELETE réussi
+        swal.fire({
+          title: "Étudiant supprimé avec succès",
+          icon: "success",
+          toast: true,
+          timer: 4000,
+          position: "top-right",
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+        return true; // Indique que la suppression a réussi
+      } else {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.detail || "Erreur lors de la suppression de l'étudiant"
+        );
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
       swal.fire({
-        title: "Cours supprimé avec succès",
-        icon: "success",
+        title: "Erreur",
+        text: error.message || "Impossible de supprimer l'étudiant",
+        icon: "error",
         toast: true,
-        timer: 2000,
+        timer: 4000,
         position: "top-right",
         timerProgressBar: true,
         showConfirmButton: false,
       });
-      return true;
-    } else {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || "Erreur lors de la suppression du cours");
+      return false;
     }
-  } catch (error) {
-    console.error("Erreur:", error);
-    swal.fire({
-      title: "Erreur",
-      text: error.message || "Impossible de supprimer le cours",
-      icon: "error",
-      toast: true,
-      timer: 2000,
-      position: "top-right",
-      timerProgressBar: true,
-      showConfirmButton: false,
-    });
-    return false;
-  }
-};
+  };
+
+  // ✅ Supprimer un enseignant
+  const deleteTeacher = async (teacherId) => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/teachers/${teacherId}/`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authTokens?.access}`,
+            "X-CSRFToken": getCsrfToken(),
+          },
+        }
+      );
+
+      if (response.status === 204) {
+        swal.fire({
+          title: "Enseignant supprimé avec succès",
+          icon: "success",
+          toast: true,
+          timer: 4000,
+          position: "top-right",
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+        return true;
+      } else {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.detail || "Erreur lors de la suppression de l'enseignant"
+        );
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+      swal.fire({
+        title: "Erreur",
+        text: error.message || "Impossible de supprimer l'enseignant",
+        icon: "error",
+        toast: true,
+        timer: 4000,
+        position: "top-right",
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+      return false;
+    }
+  };
+
+  // ✅ Supprimer un cours
+  const deleteCourse = async (courseId) => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/courses/${courseId}/`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authTokens?.access}`,
+            "X-CSRFToken": getCsrfToken(),
+          },
+        }
+      );
+
+      if (response.status === 204) {
+        swal.fire({
+          title: "Cours supprimé avec succès",
+          icon: "success",
+          toast: true,
+          timer: 4000,
+          position: "top-right",
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+        return true;
+      } else {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.detail || "Erreur lors de la suppression du cours"
+        );
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+      swal.fire({
+        title: "Erreur",
+        text: error.message || "Impossible de supprimer le cours",
+        icon: "error",
+        toast: true,
+        timer: 4000,
+        position: "top-right",
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+      return false;
+    }
+  };
 
   useEffect(() => {
     if (authTokens) {

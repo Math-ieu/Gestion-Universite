@@ -10,7 +10,7 @@ const roles: TeacherRole[] = ["Vacataire", "ATER", "MdC", "Professeur"];
 
 export function TeacherForm({ onSubmit }: TeacherFormProps) {
   const [formData, setFormData] = useState<Teacher>({
-    prenom: "",
+    prenom: "", 
     nom: "",
     tel: "",
     fonction: "Vacataire",
@@ -202,7 +202,7 @@ export function TeacherForm({ onSubmit }: TeacherFormProps) {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Numéro de télétel
+          Numéro de téléphone
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

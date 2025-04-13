@@ -5,7 +5,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
 import logging
-
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model
 User = get_user_model()
 
@@ -103,7 +103,23 @@ logger = logging.getLogger(__name__)
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ['id', 'email', 'password', 'nom', 'prenom', 'tel', 'role', 
+                  'anneeinscrit', 'fonction', 'filiere', 'anneeetude', 
+                  'datedenaissance', 'is_active', 'is_staff', 'is_superuser']
+        extra_kwargs = {
+            'password': {'write_only': True}
+        }
+    
+    def create(self, validated_data):
+        # Hash du mot de passe avant de créer l'utilisateur
+        validated_data['password'] = make_password(validated_data.get('password'))
+        return super().create(validated_data)
+    
+    def update(self, instance, validated_data):
+        # Hash du mot de passe si présent dans les données de mise à jour
+        if 'password' in validated_data:
+            validated_data['password'] = make_password(validated_data.get('password'))
+        return super().update(instance, validated_data)
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -178,9 +194,19 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 class CoursSerializer(serializers.ModelSerializer):
+    enseignant_id = serializers.IntegerField(write_only=True)
+    
     class Meta:
         model = Cours
-        fields = '__all__'
+        fields = ['titre', 'description', 'volumehoraire', 'type_cours', 
+                  'semestre', 'anneeetude', 'enseignant', 'enseignant_id']
+        read_only_fields = ['enseignant']
+    
+    def create(self, validated_data):
+        enseignant_id = validated_data.pop('enseignant_id')
+        enseignant = User.objects.get(id=enseignant_id, role='enseignant')
+        cours = Cours.objects.create(enseignant=enseignant, **validated_data)
+        return cours
 
 
 class SeanceSerializer(serializers.ModelSerializer):

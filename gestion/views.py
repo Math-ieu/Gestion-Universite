@@ -21,7 +21,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
         try:
             serializer.is_valid(raise_exception=True)
         except serializers.ValidationError as e:
-            # Log l'erreur pour débogage
+            # Log l'erreur pour débogage 
             logger.error(f"Erreur de validation: {e.detail}")
             return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
             

@@ -21,7 +21,7 @@ function Secretaire() {
 
   const { fetchTeachersfunction, fetchCoursesfunction, fetchStudentsfunction, addTeacher, addStudent, addCourse, updateCourse, updateStudent, deleteStudent,
     deleteTeacher,
-    deleteCourse,} =
+    deleteCourse,} = 
     useContext(AuthContext);
 
   useEffect(() => {
@@ -72,6 +72,7 @@ function Secretaire() {
       } else {
         // Ajout d'un nouveau cours
         result = await addCourse(course);
+       
       }
 
       if (result) {
@@ -149,10 +150,14 @@ function Secretaire() {
     }
   };
 
-  const getTeacherName = (teacherId: string) => {
-    const teacher = teachers.find((t) => t.id === teacherId);
+  const getTeacherName = (teacherId: string | number) => {
+    console.log("🔍 teacherId reçu :", teacherId);
+    console.log("🧑‍🏫 Liste des enseignants :", teachers);
+    console.log("les cours", ...courses);
+    const teacher = teachers.find((t) => String(t.id) === String(teacherId));
     return teacher ? `${teacher.prenom} ${teacher.nom}` : "Inconnu";
   };
+  
 
   return (
     <Layout>

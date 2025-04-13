@@ -3,7 +3,7 @@ from .views import *
 from rest_framework_simplejwt.views import (
     TokenRefreshView, 
 )
- 
+  
 urlpatterns = [ 
      
      # Liste et création
@@ -11,8 +11,6 @@ urlpatterns = [
     # Détail, mise à jour et suppression
     path("utilisateurs/<int:pk>/", UserRetrieveUpdateDestroyView.as_view(), name="utilisateur-detail"),
     
-    path('cours/', CoursListCreate.as_view(), name='cours-list'),
-    path('cours/<int:pk>/', CoursDetail.as_view(), name='cours-detail'),
 
     path('seances/', SeanceListCreate.as_view(), name='seances-list'),
     path('seances/<int:pk>/', SeanceDetail.as_view(), name='seance-detail'),
