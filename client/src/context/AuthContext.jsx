@@ -348,6 +348,8 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  
+
   // ✅ Ajouter un enseignant
   const addTeacher = async (teacherData) => {
     try {
@@ -460,6 +462,34 @@ export const AuthProvider = ({ children }) => {
       return [];
     }
   };
+
+    // ✅ Récupérer un étudiant spécifique
+    const fetchStudentById = async (studentId) => {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/api/students/${studentId}/`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authTokens?.access}`,
+          },
+        });
+
+        if (response.status === 200) {  
+          const data = await response.json();
+          return data; // Retourne l'étudiant spécifique
+        } else {
+          throw new Error("Erreur lors de la récupération de l'étudiant");
+        }
+      } catch (error) {
+        console.error("Erreur:", error);
+        swal.fire({
+          title: "Erreur",
+          text: error.message || "Impossible de récupérer l'étudiant",
+          icon: "error",
+        }); 
+        return null;
+      }
+    };
 
   // ✅ Mettre à jour un cours
   const updateCourse = async (courseId, courseData) => {
@@ -705,6 +735,91 @@ export const AuthProvider = ({ children }) => {
       return false;
     }
   };
+// ✅ Récupérer les étudiants inscrits à un cours spécifique
+const fetchStudentsByCourse = async (courseId) => {
+  try {
+    const response = await fetch(
+      `http://127.0.0.1:8000/api/inscriptions/?cours=${courseId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authTokens?.access}`, // Ajout du token JWT
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      const data = await response.json();
+      // Extraire les étudiants des inscriptions
+      const students = data.map(inscription => inscription.etudiant);
+      return students; // Retourne la liste des étudiants inscrits
+    } else {
+      throw new Error("Erreur lors de la récupération des étudiants");
+    }
+  } catch (error) {
+    console.error("Erreur:", error);
+    swal.fire({
+      title: "Erreur",
+      text: "Impossible de récupérer les étudiants inscrits",
+      icon: "error",
+      toast: true,
+      timer: 4000,
+      position: "top-right",
+      timerProgressBar: true,
+      showConfirmButton: false,
+    });
+    return [];
+  }
+};
+
+// ajouter les notes
+const addNote = async (noteData) => {
+  try {
+    const response = await fetch("http://127.0.0.1:8000/api/notes/", {
+      method: "POST", 
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${authTokens?.access}`,
+        "X-CSRFToken": getCsrfToken(),
+      },
+      body: JSON.stringify(noteData),
+    });
+
+    if (response.status === 201) {
+      const data = await response.json();
+      swal.fire({
+        title: "Note ajoutée avec succès",
+        icon: "success",
+        toast: true,
+        timer: 4000,
+        position: "top-right",
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+      return data;
+    } else {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Erreur lors de l'ajout de la note");
+    }
+  } catch (error) {
+    console.error("Erreur:", error);
+    swal.fire({
+      title: "Erreur",
+      text: error.message || "Impossible d'ajouter la note",
+      icon: "error",
+      toast: true,
+      timer: 4000,
+      position: "top-right",
+      timerProgressBar: true,
+      showConfirmButton: false,
+    });
+    return null;
+  }
+};
+
+
+
 
   useEffect(() => {
     if (authTokens) {
@@ -733,6 +848,9 @@ export const AuthProvider = ({ children }) => {
     deleteStudent,
     deleteTeacher,
     deleteCourse,
+    fetchStudentsByCourse,
+    fetchStudentById,
+    addNote,
   };
 
   return (

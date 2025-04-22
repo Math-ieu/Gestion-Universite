@@ -1,139 +1,244 @@
-import { useState } from 'react';
+import { useState, useEffect, useContext } from "react";
 import {
   GraduationCap,
   BookOpen,
   ClipboardList,
   MessageCircle,
-} from 'lucide-react';
-
-import { CourseList } from './components/CourseList';
-import { ExerciseSubmission } from './components/ExerciseSubmission';
-import { GradesList } from './components/GradesList';
-import { QuestionForm } from './components/QuestionForm';
-import type { Course, Grade, StudentSubmission, Session } from './types';
+} from "lucide-react";
+import Swal from "sweetalert2";
+import { CourseList } from "./components/CourseList";
+import { ExerciseSubmission } from "./components/ExerciseSubmission";
+import { GradesList } from "./components/GradesList";
+import { QuestionForm } from "./components/QuestionForm";
+import type { Course, Grade, StudentSubmission } from "./types";
 import { Layout } from "../../components/Layout";
-
-// Données de test
-const mockSessions: Session[] = [
-  {
-    id: '1',
-    courseId: '1',
-    courseName: 'Introduction à la programmation',
-    date: '2024-03-20T09:00:00',
-    duration: 2,
-    description: 'Introduction aux concepts de base',
-    room: 'A101',
-  },
-  {
-    id: '2',
-    courseId: '2',
-    courseName: 'Algèbre linéaire',
-    date: '2024-03-21T14:00:00',
-    duration: 2,
-    description: 'Espaces vectoriels',
-    room: 'B202',
-  },
-];
-
-const mockCourses: Course[] = [
-  {
-    id: '1',
-    code: 'INFO101',
-    name: 'Introduction à la programmation',
-    description: 'Fondamentaux de la programmation en Python',
-    teacher: 'Dr. Martin',
-    schedule: 'Lundi 9h-11h',
-    enrolled: false,
-    sessions: mockSessions.filter(s => s.courseId === '1'),
-  },
-  {
-    id: '2',
-    code: 'MATH201',
-    name: 'Algèbre linéaire',
-    description: 'Étude des espaces vectoriels et des transformations linéaires',
-    teacher: 'Dr. Bernard',
-    schedule: 'Mardi 14h-16h',
-    enrolled: true,
-    sessions: mockSessions.filter(s => s.courseId === '2'),
-  },
-];
-
-const mockGrades: Grade[] = [
-  {
-    id: '1',
-    courseId: '2',
-    courseName: 'Algèbre linéaire',
-    examType: 'Partiel',
-    grade: 15,
-    feedback: 'Excellent travail sur les matrices',
-    date: '2024-02-15',
-  },
-];
+import AuthContext from "../../../context/AuthContext";
 
 function Etudiant() {
-  const [activeTab, setActiveTab] = useState('courses');
-  const [courses, setCourses] = useState(mockCourses);
-  const [grades] = useState(mockGrades);
+  const [activeTab, setActiveTab] = useState("courses");
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [grades] = useState<Grade[]>([]); // À adapter si tu veux fetcher les notes
+  const [loading, setLoading] = useState(false);
+  const { user, authTokens, fetchCoursesfunction } = useContext(AuthContext);
+  const studentId = user?.id;
+
+  // Fetcher les cours et les inscriptions au chargement
+  useEffect(() => {
+    const fetchCoursesAndEnrollments = async () => {
+      if (!studentId || !authTokens) return;
+      setLoading(true);
+      try {
+        // Fetch tous les cours
+        const coursesData = await fetchCoursesfunction();
+        console.log(coursesData);
+        // Fetch les inscriptions de l'étudiant
+        const enrollmentsResponse = await fetch(
+          `http://127.0.0.1:8000/api/inscriptions/?etudiant=${studentId}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${authTokens.access}`,
+            },
+          }
+        );
+        if (!enrollmentsResponse.ok)
+          throw new Error("Erreur lors du chargement des inscriptions");
+        const enrollmentsData = await enrollmentsResponse.json();
+
+        // Marquer les cours comme inscrits
+        const enrolledCourseIds = enrollmentsData.map(
+          (enrollment: any) => enrollment.cours.id
+        );
+        const updatedCourses = coursesData.map((course: Course) => ({
+          ...course,
+          enrolled: enrolledCourseIds.includes(course.id),
+        }));
+
+        setCourses(updatedCourses);
+      } catch (error) {
+        console.error("Erreur:", error);
+        Swal.fire({
+          title: "Erreur",
+          text: "Impossible de charger les cours ou les inscriptions",
+          icon: "error",
+          toast: true,
+          timer: 4000,
+          position: "top-right",
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCoursesAndEnrollments();
+  }, [studentId, authTokens]);
 
   const handleEnroll = async (courseId: string) => {
     try {
-      const response = await fetch(`/api/student/courses/${courseId}/enroll`, {
-        method: 'POST',
+      const response = await fetch("http://127.0.0.1:8000/api/inscriptions/", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authTokens?.access}`,
         },
+        body: JSON.stringify({
+          etudiant_id: studentId,
+          cours_id: Number(courseId),
+        }),
       });
 
       if (!response.ok) throw new Error("Erreur lors de l'inscription");
 
-      setCourses(courses.map(course =>
-        course.id === courseId
-          ? { ...course, enrolled: true }
-          : course
-      ));
+      setCourses(
+        courses.map((course) =>
+          course.id === Number(courseId) ? { ...course, enrolled: true } : course
+        )
+      );
     } catch (error) {
-      console.error('Erreur:', error);
+      console.error("Erreur:", error);
+      throw error; // Propagé pour affichage dans CourseList
+    }
+  };
+
+  const handleUnenroll = async (courseId: string) => {
+    try {
+      // Trouver l'inscription correspondante
+      const enrollmentResponse = await fetch(
+        `http://127.0.0.1:8000/api/inscriptions/?etudiant=${studentId}&cours=${courseId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authTokens?.access}`,
+          },
+        }
+      );
+      if (!enrollmentResponse.ok)
+        throw new Error("Erreur lors de la récupération de l'inscription");
+      const enrollmentData = await enrollmentResponse.json();
+      if (enrollmentData.length === 0)
+        throw new Error("Aucune inscription trouvée");
+
+      const enrollmentId = enrollmentData[0].id;
+
+      // Supprimer l'inscription
+      const deleteResponse = await fetch(
+        `http://127.0.0.1:8000/api/inscriptions/${enrollmentId}/`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${authTokens?.access}`,
+          },
+        }
+      );
+      if (!deleteResponse.ok)
+        throw new Error("Erreur lors de la désinscription");
+
+      setCourses(
+        courses.map((course) =>
+          course.id === Number(courseId) ? { ...course, enrolled: false } : course
+        )
+      );
+    } catch (error) {
+      console.error("Erreur:", error);
+      throw error; // Propagé pour affichage dans CourseList
     }
   };
 
   const handleExerciseSubmit = async (submission: StudentSubmission) => {
     try {
       const formData = new FormData();
-      formData.append('file', submission.file);
-      formData.append('courseId', submission.courseId);
-      formData.append('sessionId', submission.sessionId);
+      formData.append("file", submission.file);
+      formData.append("exercice_id", submission.courseId); // Ajusté pour ton API
       if (submission.comment) {
-        formData.append('comment', submission.comment);
+        formData.append("comment", submission.comment);
       }
 
-      const response = await fetch('/api/student/exercises', {
-        method: 'POST',
-        body: formData,
-      });
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/soumissions-exercices/",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${authTokens?.access}`,
+          },
+          body: formData,
+        }
+      );
 
       if (!response.ok) throw new Error("Erreur lors de l'envoi de l'exercice");
-      
-      // Gérer le succès...
+
+      Swal.fire({
+        title: "Succès",
+        text: "Exercice soumis avec succès",
+        icon: "success",
+        toast: true,
+        timer: 3000,
+        position: "top-right",
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
     } catch (error) {
-      console.error('Erreur:', error);
+      console.error("Erreur:", error);
+      Swal.fire({
+        title: "Erreur",
+        text: "Erreur lors de l'envoi de l'exercice",
+        icon: "error",
+        toast: true,
+        timer: 3000,
+        position: "top-right",
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
     }
   };
 
-  const handleQuestionSubmit = async (courseId: string, sessionId: string, content: string) => {
+  const handleQuestionSubmit = async (
+    courseId: string,
+    sessionId: string,
+    content: string
+  ) => {
     try {
-      const response = await fetch('/api/student/questions', {
-        method: 'POST',
+      const response = await fetch("http://127.0.0.1:8000/api/questions/", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authTokens?.access}`,
         },
-        body: JSON.stringify({ courseId, sessionId, content }),
+        body: JSON.stringify({
+          etudiant_id: studentId,
+          seance_id: sessionId,
+          contenu: content,
+        }),
       });
 
-      if (!response.ok) throw new Error('Erreur lors de l\'envoi de la question');
-      
-      // Gérer le succès...
+      if (!response.ok)
+        throw new Error("Erreur lors de l'envoi de la question");
+
+      Swal.fire({
+        title: "Succès",
+        text: "Question envoyée avec succès",
+        icon: "success",
+        toast: true,
+        timer: 3000,
+        position: "top-right",
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
     } catch (error) {
-      console.error('Erreur:', error);
+      console.error("Erreur:", error);
+      Swal.fire({
+        title: "Erreur",
+        text: "Erreur lors de l'envoi de la question",
+        icon: "error",
+        toast: true,
+        timer: 3000,
+        position: "top-right",
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
     }
   };
 
@@ -142,7 +247,7 @@ function Etudiant() {
       <div className="justify-center items-center flex flex-col">
         <h1 className="text-3xl font-bold">Tableau de bord étudiant</h1>
       </div>
-      
+
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
@@ -199,28 +304,36 @@ function Etudiant() {
 
               {/* Content */}
               <div className="p-6">
-                {activeTab === 'courses' && (
+                {activeTab === "courses" && (
                   <div className="space-y-6">
                     <h2 className="text-lg font-medium text-gray-900 mb-4">
                       Catalogue des cours
                     </h2>
-                    <CourseList courses={courses} onEnroll={handleEnroll} />
+                    {loading ? (
+                      <p className="text-gray-500">Chargement des cours...</p>
+                    ) : (
+                      <CourseList
+                        courses={courses}
+                        onEnroll={handleEnroll}
+                        onUnenroll={handleUnenroll}
+                      />
+                    )}
                   </div>
                 )}
-    
-                {activeTab === 'exercises' && (
+
+                {activeTab === "exercises" && (
                   <div className="space-y-6">
                     <h2 className="text-lg font-medium text-gray-900 mb-4">
                       Soumettre un exercice
                     </h2>
                     <ExerciseSubmission
-                      courses={courses}
+                      courses={courses.filter((course) => course.enrolled)}
                       onSubmit={handleExerciseSubmit}
                     />
                   </div>
                 )}
-    
-                {activeTab === 'grades' && (
+
+                {activeTab === "grades" && (
                   <div className="space-y-6">
                     <h2 className="text-lg font-medium text-gray-900 mb-4">
                       Mes notes
@@ -228,14 +341,14 @@ function Etudiant() {
                     <GradesList grades={grades} />
                   </div>
                 )}
-    
-                {activeTab === 'questions' && (
+
+                {activeTab === "questions" && (
                   <div className="space-y-6">
                     <h2 className="text-lg font-medium text-gray-900 mb-4">
                       Poser une question
                     </h2>
                     <QuestionForm
-                      courses={courses}
+                      courses={courses.filter((course) => course.enrolled)}
                       onSubmit={handleQuestionSubmit}
                     />
                   </div>

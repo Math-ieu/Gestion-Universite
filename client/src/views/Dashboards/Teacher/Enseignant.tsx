@@ -5,15 +5,25 @@ import {
   ClipboardList,
   MessageCircle,
   Plus,
-  BookOpen, PenLine, HelpCircle
+  BookOpen,
+  PenLine,
+  HelpCircle,
 } from "lucide-react";
 
 import { TabButton } from "./components/TabButton";
 import { Calendar } from "./components/Calendar";
 import { GradeForm } from "./components/GradeForm";
 import { SessionForm } from "./components/SessionForm";
-import type { Session, Grade, Exercise, Question, TabProps } from "./types";
+import type {
+  Session,
+  Exercise,
+  Question,
+  TabProps,
+  NoteSubmit,
+} from "./types";
 import { Layout } from "../../components/Layout";
+import { useContext } from "react";
+import AuthContext from "../../../context/AuthContext";
 
 const TABS: TabProps[] = [
   {
@@ -52,20 +62,12 @@ function Enseignant() {
   const [sessions, setSessions] = useState<Session[]>(mockSessions);
   const [showSessionForm, setShowSessionForm] = useState(false);
 
-  const handleGradeSubmit = async (grade: Omit<Grade, "id" | "date">) => {
+  const { addNote } = useContext(AuthContext);
+  const handleGradeSubmit = async (grade: Omit<NoteSubmit, "id" | "date">) => {
     try {
-      const response = await fetch("/api/grades", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(grade),
-      });
-      if (!response.ok)
-        throw new Error("Erreur lors de l'enregistrement de la note");
-      // Gérer la réponse...
+      await addNote(grade);
     } catch (error) {
-      console.error("Erreur:", error);
+      console.error("Erreur lors de l'ajout de la note:", error);
     }
   };
 
@@ -95,7 +97,7 @@ function Enseignant() {
       <div className="justify-center items-center flex flex-col">
         <h1 className="text-3xl font-bold">Tableau de bord de l'enseignant</h1>
       </div>
-  
+
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
@@ -149,7 +151,7 @@ function Enseignant() {
                   </button>
                 </nav>
               </div>
-  
+
               {/* Content */}
               <div className="p-6">
                 {activeTab === "calendar" && (
@@ -166,7 +168,7 @@ function Enseignant() {
                         <span>Nouvelle séance</span>
                       </button>
                     </div>
-  
+
                     {showSessionForm ? (
                       <div className="bg-gray-50 p-6 rounded-lg">
                         <SessionForm onSubmit={handleSessionSubmit} />
@@ -176,7 +178,7 @@ function Enseignant() {
                     )}
                   </div>
                 )}
-   
+
                 {activeTab === "grades" && (
                   <div>
                     <h2 className="text-lg font-semibold text-gray-900 mb-4">
@@ -185,7 +187,7 @@ function Enseignant() {
                     <GradeForm onSubmit={handleGradeSubmit} />
                   </div>
                 )}
-  
+
                 {activeTab === "exercises" && (
                   <div>
                     <h2 className="text-lg font-semibold text-gray-900">
@@ -196,7 +198,7 @@ function Enseignant() {
                     </p>
                   </div>
                 )}
-  
+
                 {activeTab === "questions" && (
                   <div>
                     <h2 className="text-lg font-semibold text-gray-900">

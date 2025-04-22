@@ -5,11 +5,6 @@ from rest_framework_simplejwt.views import (
 )
   
 urlpatterns = [ 
-     
-     # Liste et création
-    path("utilisateurs/", UserListCreateView.as_view(), name="utilisateur-list-create"),
-    # Détail, mise à jour et suppression
-    path("utilisateurs/<int:pk>/", UserRetrieveUpdateDestroyView.as_view(), name="utilisateur-detail"),
     
 
     path('seances/', SeanceListCreate.as_view(), name='seances-list'),

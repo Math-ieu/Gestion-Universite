@@ -20,5 +20,5 @@ export function TabButton({ active, onClick, icon, label }: TabButtonProps) {
       {icon}
       <span>{label}</span>
     </button>
-  );
+  ); 
 }

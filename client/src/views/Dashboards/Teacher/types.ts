@@ -7,16 +7,25 @@ export interface Session {
   description: string;
   room: string;
 }
-
-export interface Grade {
-  id: string;
-  studentId: string;
-  studentName: string;
-  examType: string;
-  grade: number;
-  comment: string;
-  date: string;
+ 
+export interface Note {
+  cours: number;
+  id?: string;
+  etudiant: number;
+  type_examen: string;
+  note: number;
+  explication: string;
+  nomEtudiant: string;
 }
+
+export interface NoteSubmit {
+  cours_id: number;
+  etudiant_id: number;
+  type_examen: string;
+  note: number;
+  explication: string;
+}
+
 
 export interface Exercise {
   id: string;
@@ -35,13 +44,40 @@ export interface Question {
   studentName: string;
   sessionId: string;
   content: string;
-  status: 'pending' | 'answered';
+  status: "pending" | "answered";
   createdAt: string;
   answer?: string;
 }
-
+ 
 export interface TabProps {
   id: string;
   label: string;
   icon: React.ReactNode;
 }
+
+export interface Student {
+  id?: number;
+  prenom: string;
+  nom: string;
+  anneeinscrit: string;
+  email: string;
+  datedenaissance: string;
+  password: string;
+  password2: string;
+  filiere: string;
+  anneeetude: string;
+  role: string;
+}
+
+export interface Cours {
+  id?: number;
+  titre: string;
+  description: string;
+  volumehoraire: number;
+  type_cours: string;
+  semestre: string;
+  anneeetude: string;
+  enseignant: number | null; // ID de l'enseignant
+}
+
+

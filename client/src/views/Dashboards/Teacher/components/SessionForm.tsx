@@ -13,7 +13,7 @@ export function SessionForm({ onSubmit }: SessionFormProps) {
     date: '',
     duration: '',
     description: '',
-    room: '',
+    room: '', 
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});

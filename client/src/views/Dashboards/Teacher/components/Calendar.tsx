@@ -4,8 +4,8 @@ import type { Session } from '../types';
 
 interface CalendarProps {
   sessions: Session[];
-}
- 
+} 
+  
 export function Calendar({ sessions }: CalendarProps) {
   return (
     <div className="bg-white rounded-lg shadow">

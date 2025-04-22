@@ -103,22 +103,24 @@ logger = logging.getLogger(__name__)
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'email', 'password', 'nom', 'prenom', 'tel', 'role', 
-                  'anneeinscrit', 'fonction', 'filiere', 'anneeetude', 
+        fields = ['id', 'email', 'password', 'nom', 'prenom', 'tel', 'role',
+                  'anneeinscrit', 'fonction', 'filiere', 'anneeetude',
                   'datedenaissance', 'is_active', 'is_staff', 'is_superuser']
         extra_kwargs = {
             'password': {'write_only': True}
         }
-    
+
     def create(self, validated_data):
         # Hash du mot de passe avant de créer l'utilisateur
-        validated_data['password'] = make_password(validated_data.get('password'))
+        validated_data['password'] = make_password(
+            validated_data.get('password'))
         return super().create(validated_data)
-    
+
     def update(self, instance, validated_data):
         # Hash du mot de passe si présent dans les données de mise à jour
         if 'password' in validated_data:
-            validated_data['password'] = make_password(validated_data.get('password'))
+            validated_data['password'] = make_password(
+                validated_data.get('password'))
         return super().update(instance, validated_data)
 
 
@@ -138,6 +140,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['email'] = user.email
         token['nom'] = user.nom
         token['prenom'] = user.prenom
+        token['id'] = user.id
         return token
 
     def validate(self, attrs):
@@ -182,11 +185,11 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
             'refresh': str(refresh),
             'access': str(refresh.access_token),
             'user': {
-                'id': user.id,
                 'email': user.email,
                 'role': user.role,
                 'nom': user.nom,
-                'prenom': user.prenom
+                'prenom': user.prenom,
+                'id': user.id
             }
         }
 
@@ -195,51 +198,148 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class CoursSerializer(serializers.ModelSerializer):
     enseignant_id = serializers.IntegerField(write_only=True)
-    
+
     class Meta:
         model = Cours
-        fields = ['titre', 'description', 'volumehoraire', 'type_cours', 
+        fields = ['id', 'titre', 'description', 'volumehoraire', 'type_cours',
                   'semestre', 'anneeetude', 'enseignant', 'enseignant_id']
         read_only_fields = ['enseignant']
-    
+
     def create(self, validated_data):
         enseignant_id = validated_data.pop('enseignant_id')
         enseignant = User.objects.get(id=enseignant_id, role='enseignant')
         cours = Cours.objects.create(enseignant=enseignant, **validated_data)
         return cours
 
+    
+
 
 class SeanceSerializer(serializers.ModelSerializer):
+    cours_id = serializers.IntegerField(write_only=True)
+
     class Meta:
         model = Seance
-        fields = '__all__'
+        fields = ['id', 'cours', 'cours_id',
+                  'duree', 'date', 'heure_debut', 'salle']
+        read_only_fields = ['cours']
+
+    def create(self, validated_data):
+        cours_id = validated_data.pop('cours_id')
+        cours = Cours.objects.get(id=cours_id)
+        seance = Seance.objects.create(cours=cours, **validated_data)
+        return seance
 
 
 class InscriptionSerializer(serializers.ModelSerializer):
+    etudiant_id = serializers.IntegerField(write_only=True)
+    cours_id = serializers.IntegerField(write_only=True)
+
     class Meta:
         model = Inscription
-        fields = '__all__'
+        fields = ['id', 'etudiant', 'etudiant_id', 'cours', 'cours_id']
+        read_only_fields = ['etudiant', 'cours']
+
+    def create(self, validated_data):
+        etudiant_id = validated_data.pop('etudiant_id')
+        cours_id = validated_data.pop('cours_id')
+        etudiant = User.objects.get(id=etudiant_id, role='etudiant')
+        cours = Cours.objects.get(id=cours_id)
+        inscription = Inscription.objects.create(
+            etudiant=etudiant,
+            cours=cours,
+            **validated_data
+        )
+        return inscription
 
 
 class NoteSerializer(serializers.ModelSerializer):
+    etudiant_id = serializers.IntegerField(write_only=True)
+    cours_id = serializers.IntegerField(write_only=True)
+
     class Meta:
         model = Note
-        fields = '__all__'
+        fields = ['id', 'etudiant', 'etudiant_id', 'cours', 'cours_id',
+                  'type_examen', 'note', 'explication']
+        read_only_fields = ['etudiant', 'cours']
+
+    def create(self, validated_data):
+        etudiant_id = validated_data.pop('etudiant_id')
+        cours_id = validated_data.pop('cours_id')
+        etudiant = User.objects.get(id=etudiant_id, role='etudiant')
+        cours = Cours.objects.get(id=cours_id)
+        note = Note.objects.create(
+            etudiant=etudiant,
+            cours=cours,
+            **validated_data
+        )
+        return note
+
+    def validate(self, attrs):
+        # Validation de la note (entre 0 et 20)
+        note = attrs.get('note')
+        if note is not None and (note < 0 or note > 20):
+            raise serializers.ValidationError(
+                {"note": "La note doit être comprise entre 0 et 20."})
+        return attrs
 
 
 class ExerciceSerializer(serializers.ModelSerializer):
+    cours_id = serializers.IntegerField(write_only=True)
+
     class Meta:
         model = Exercice
-        fields = '__all__'
+        fields = ['id', 'cours', 'cours_id', 'description', 'titre_exercice',
+                  'date_limite', 'type_exercice']
+        read_only_fields = ['cours']
+
+    def create(self, validated_data):
+        cours_id = validated_data.pop('cours_id')
+        cours = Cours.objects.get(id=cours_id)
+        exercice = Exercice.objects.create(cours=cours, **validated_data)
+        return exercice
 
 
 class QuestionSerializer(serializers.ModelSerializer):
+    etudiant_id = serializers.IntegerField(write_only=True)
+    seance_id = serializers.IntegerField(write_only=True)
+
     class Meta:
         model = Question
-        fields = '__all__'
+        fields = ['id', 'etudiant', 'etudiant_id',
+                  'seance', 'seance_id', 'contenu']
+        read_only_fields = ['etudiant', 'seance']
+
+    def create(self, validated_data):
+        etudiant_id = validated_data.pop('etudiant_id')
+        seance_id = validated_data.pop('seance_id')
+        etudiant = User.objects.get(id=etudiant_id, role='etudiant')
+        seance = Seance.objects.get(id=seance_id)
+        question = Question.objects.create(
+            etudiant=etudiant,
+            seance=seance,
+            **validated_data
+        )
+        return question
 
 
 class SoumissionExerciceSerializer(serializers.ModelSerializer):
+    etudiant_id = serializers.IntegerField(write_only=True)
+    exercice_id = serializers.IntegerField(write_only=True)
+
     class Meta:
         model = SoumissionExercice
-        fields = '__all__'
+        fields = ['id', 'etudiant', 'etudiant_id', 'exercice', 'exercice_id',
+                  'fichier', 'date_soumission']
+        read_only_fields = ['etudiant', 'exercice', 'date_soumission']
+
+    def create(self, validated_data):
+        etudiant_id = validated_data.pop('etudiant_id')
+        exercice_id = validated_data.pop('exercice_id')
+        etudiant = User.objects.get(id=etudiant_id, role='etudiant')
+        exercice = Exercice.objects.get(id=exercice_id)
+        soumission = SoumissionExercice.objects.create(
+            etudiant=etudiant,
+            exercice=exercice,
+            **validated_data
+        )
+        return soumission
