@@ -1,5 +1,3 @@
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import type { Grade } from '../types';
 import React, { useState, useEffect, useContext } from 'react';
 import AuthContext from '../../../../context/AuthContext';
@@ -10,7 +8,7 @@ interface GradesListProps {
 
 
 export function GradesList({ etudiantId }: GradesListProps) {
-  const { fetchNotesByStudentId } = useContext(AuthContext);
+  const { fetchNotesByStudentId, fetchCourseTitle } = useContext(AuthContext);
   const [grades, setGrades] = useState<Grade[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,14 +23,13 @@ export function GradesList({ etudiantId }: GradesListProps) {
       try {
         const notes = await fetchNotesByStudentId(etudiantId);
         // Mapper les données de l'API au format attendu par Grade
-        const mappedGrades: Grade[] = notes.map((note: any) => ({
+        const mappedGrades: Grade[] = await Promise.all(notes.map(async (note: any) => ({
           id: note.id,
-          courseName: note.cours.titre,
+          courseName: await fetchCourseTitle(note.cours),
           examType: note.type_examen,
           grade: note.note,
           feedback: note.explication,
-           
-        }));
+        })));
         setGrades(mappedGrades);
       } catch (err) {
         setError('Erreur lors de la récupération des notes');
@@ -47,7 +44,7 @@ export function GradesList({ etudiantId }: GradesListProps) {
 
   const calculateAverage = () => {
     if (grades.length === 0) return 0;
-    const sum = grades.reduce((acc, grade) => acc + grade.grade, 0);
+    const sum = grades.reduce((acc, grade) => acc + Number(grade.grade), 0);
     return (sum / grades.length).toFixed(2);
   };
 

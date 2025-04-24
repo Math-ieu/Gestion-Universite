@@ -828,7 +828,7 @@ const fetchNotesByStudentId = async (etudiantId) => {
         "X-CSRFToken": getCsrfToken(),
       },
     });
-
+ 
     if (!response.ok) {
       throw new Error(`Erreur lors de la récupération des notes: ${response.statusText}`);
     }
@@ -841,6 +841,31 @@ const fetchNotesByStudentId = async (etudiantId) => {
     throw error;
   }
 };
+
+// recuperer le titre d'un cours
+const fetchCourseTitle = async (courseId) => {
+  try {
+    const response = await fetch(`http://127.0.0.1:8000/api/courses/${courseId}/`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authTokens?.access}`,
+        "X-CSRFToken": getCsrfToken(),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erreur lors de la récupération du titre du cours: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.titre;
+  } catch (error) {
+    console.error("Erreur dans fetchCourseTitle:", error);
+    throw error;
+  }
+};
+
 
 
 
@@ -876,6 +901,7 @@ const fetchNotesByStudentId = async (etudiantId) => {
     fetchStudentById,
     addNote,
     fetchNotesByStudentId,
+    fetchCourseTitle,
   };
 
   return (

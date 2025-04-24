@@ -47,7 +47,7 @@ export interface Exercise {
   submissionDate?: string;
   grade?: number;
   feedback?: string;
-} 
+}  
 
 export interface Question {
   id: string;
@@ -60,13 +60,12 @@ export interface Question {
 }
 
 export interface Grade {
-  id: string;
-  courseId: string;
+  id: number;
+  courseId: number;
   courseName: string;
   examType: string;
   grade: number;
   feedback?: string;
-  date: string;
 }
 
 export interface TabProps {
