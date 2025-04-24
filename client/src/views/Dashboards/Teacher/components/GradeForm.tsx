@@ -171,7 +171,7 @@ export function GradeForm({ onSubmit }: GradeFormProps) {
       explication: formData.explication,
     });
 
-    setFormData({
+    setFormData({ 
       ...formData,
       etudiant: 0,
       nomEtudiant: "",

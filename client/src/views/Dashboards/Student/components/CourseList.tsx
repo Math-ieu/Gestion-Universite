@@ -7,7 +7,7 @@ import AuthContext from '../../../../context/AuthContext';
 interface CourseListProps {
   courses: Course[];
   onEnroll: (courseId: string) => Promise<void>;
-  onUnenroll: (courseId: string) => Promise<void>;
+  onUnenroll: (courseId: string) => Promise<void>; 
 }
 
 export function CourseList({ courses, onEnroll, onUnenroll }: CourseListProps) {

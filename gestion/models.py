@@ -150,15 +150,23 @@ class Seance(models.Model):
 # Modèle des inscriptions
 
 class Inscription(models.Model):
+    id = models.AutoField(primary_key=True)  # Clé primaire explicite (par défaut)
     etudiant = models.ForeignKey(
-        User, on_delete=models.CASCADE, limit_choices_to={'role': 'etudiant'})
-    cours = models.ForeignKey(Cours, on_delete=models.CASCADE)
-
+        User, on_delete=models.CASCADE, limit_choices_to={'role': 'etudiant'}, related_name='inscriptions')
+    cours = models.ForeignKey(Cours, on_delete=models.CASCADE, related_name='inscriptions')
+    
+    class Meta:
+        # Définir la clé primaire composite avec unique_together
+        unique_together = ('etudiant', 'cours')
+        # Alternative avec UniqueConstraint (plus moderne)
+        constraints = [
+            models.UniqueConstraint(fields=['etudiant', 'cours'], name='unique_inscription')
+        ]
     def __str__(self):
         return f"{self.etudiant.nom} inscrit à {self.cours.titre}"
 
 # Modèle des notes d'examen
-
+  
 
 class Note(models.Model):
     etudiant = models.ForeignKey(

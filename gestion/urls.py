@@ -24,9 +24,9 @@ urlpatterns = [
     path('inscriptions/', InscriptionListCreate.as_view(), name='inscriptions-list'),
     path('inscriptions/<int:pk>/', InscriptionDetail.as_view(), name='inscription-detail'),
 
-    path('notes/', NoteListCreate.as_view(), name='notes-examens-list'),
+    path('notes/', NoteListCreate.as_view(), name='notes-examens-list'), 
     path('notes/<int:pk>/', NoteDetail.as_view(), name='note-examen-detail'),
-
+ 
     path('notes-tdtp/', NoteListCreate.as_view(), name='notes-tdtp-list'),
     path('notes-tdtp/<int:pk>/', NoteDetail.as_view(), name='note-tdtp-detail'),
 

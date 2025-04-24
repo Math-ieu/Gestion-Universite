@@ -6,7 +6,7 @@ import swal from "sweetalert2";
 const AuthContext = createContext();
 
 export default AuthContext;
-
+ 
 export const AuthProvider = ({ children }) => {
   const [authTokens, setAuthTokens] = useState(() =>
     localStorage.getItem("authTokens")
@@ -653,7 +653,7 @@ export const AuthProvider = ({ children }) => {
             "X-CSRFToken": getCsrfToken(),
           },
         }
-      );
+      ); 
 
       if (response.status === 204) {
         swal.fire({
@@ -752,7 +752,7 @@ const fetchStudentsByCourse = async (courseId) => {
     if (response.status === 200) {
       const data = await response.json();
       // Extraire les étudiants des inscriptions
-      const students = data.map(inscription => inscription.etudiant);
+      const students = data.map(inscription => inscription.etudiant.id);
       return students; // Retourne la liste des étudiants inscrits
     } else {
       throw new Error("Erreur lors de la récupération des étudiants");
@@ -818,6 +818,30 @@ const addNote = async (noteData) => {
   }
 };
 
+const fetchNotesByStudentId = async (etudiantId) => {
+  try {
+    const response = await fetch(`http://127.0.0.1:8000/api/notes/?etudiant_id=${etudiantId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authTokens?.access}`,
+        "X-CSRFToken": getCsrfToken(),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erreur lors de la récupération des notes: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log("Notes récupérées pour l'étudiant", etudiantId, ":", data);
+    return data;
+  } catch (error) {
+    console.error("Erreur dans fetchNotesByStudentId:", error);
+    throw error;
+  }
+};
+
 
 
 
@@ -851,6 +875,7 @@ const addNote = async (noteData) => {
     fetchStudentsByCourse,
     fetchStudentById,
     addNote,
+    fetchNotesByStudentId,
   };
 
   return (

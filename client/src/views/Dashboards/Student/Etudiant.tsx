@@ -13,7 +13,7 @@ import { QuestionForm } from "./components/QuestionForm";
 import type { Course, Grade, StudentSubmission } from "./types";
 import { Layout } from "../../components/Layout";
 import AuthContext from "../../../context/AuthContext";
-
+ 
 function Etudiant() {
   const [activeTab, setActiveTab] = useState("courses");
   const [courses, setCourses] = useState<Course[]>([]);
@@ -30,7 +30,7 @@ function Etudiant() {
       try {
         // Fetch tous les cours
         const coursesData = await fetchCoursesfunction();
-        console.log(coursesData);
+        
         // Fetch les inscriptions de l'étudiant
         const enrollmentsResponse = await fetch(
           `http://127.0.0.1:8000/api/inscriptions/?etudiant=${studentId}`,
@@ -338,7 +338,7 @@ function Etudiant() {
                     <h2 className="text-lg font-medium text-gray-900 mb-4">
                       Mes notes
                     </h2>
-                    <GradesList grades={grades} />
+                    <GradesList etudiantId={studentId} />
                   </div>
                 )}
 

@@ -10,7 +10,7 @@ export interface Session {
  
 export interface Note {
   cours: number;
-  id?: string;
+  id?: number;
   etudiant: number;
   type_examen: string;
   note: number;

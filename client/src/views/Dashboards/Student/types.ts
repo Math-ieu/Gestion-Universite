@@ -11,9 +11,9 @@ export interface Course {
   enseignant: number; // ID de l'enseignant
   enrolled: boolean; // Calculé côté frontend
 }
-
+ 
 export interface Teacher {
-  id?: string;
+  id?: number;
   prenom: string;
   nom: string;
   tel: string;
@@ -47,7 +47,7 @@ export interface Exercise {
   submissionDate?: string;
   grade?: number;
   feedback?: string;
-}
+} 
 
 export interface Question {
   id: string;

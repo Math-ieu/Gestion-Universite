@@ -52,6 +52,8 @@ export function GradeForm({ onSubmit }: GradeFormProps) {
     onSubmit({
       ...formData,
       grade: Number(formData.grade),
+      courseId: '1', // Adding required courseId
+      courseName: 'Default Course' // Adding required courseName
     });
 
     setFormData({

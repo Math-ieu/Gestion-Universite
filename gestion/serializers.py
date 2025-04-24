@@ -9,7 +9,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model
 User = get_user_model()
 
-
+ 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True, required=True, min_length=6)
@@ -231,27 +231,50 @@ class SeanceSerializer(serializers.ModelSerializer):
 
 
 class InscriptionSerializer(serializers.ModelSerializer):
-    etudiant_id = serializers.IntegerField(write_only=True)
-    cours_id = serializers.IntegerField(write_only=True)
+    etudiant = UserSerializer(read_only=True)
+    cours = CoursSerializer(read_only=True)
+    etudiant_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), source='etudiant', write_only=True
+    )
+    cours_id = serializers.PrimaryKeyRelatedField(
+        queryset=Cours.objects.all(), source='cours', write_only=True
+    )
 
     class Meta:
         model = Inscription
-        fields = ['id', 'etudiant', 'etudiant_id', 'cours', 'cours_id']
-        read_only_fields = ['etudiant', 'cours']
+        fields = ['id', 'etudiant', 'cours', 'etudiant_id', 'cours_id']
 
     def create(self, validated_data):
-        etudiant_id = validated_data.pop('etudiant_id')
-        cours_id = validated_data.pop('cours_id')
-        etudiant = User.objects.get(id=etudiant_id, role='etudiant')
-        cours = Cours.objects.get(id=cours_id)
-        inscription = Inscription.objects.create(
-            etudiant=etudiant,
-            cours=cours,
-            **validated_data
-        )
-        return inscription
+        # Créer une inscription avec la clé composite
+        return Inscription.objects.create(**validated_data)
 
+    def update(self, instance, validated_data):
+        # Mettre à jour les champs si nécessaire
+        instance.etudiant = validated_data.get('etudiant', instance.etudiant)
+        instance.cours = validated_data.get('cours', instance.cours)
+        instance.save()
+        return instance
 
+    def validate(self, data):
+        # Vérifier que la combinaison etudiant/cours n'existe pas déjà
+        etudiant = data.get('etudiant')
+        cours = data.get('cours')
+        if self.instance is None:  # Création
+            if Inscription.objects.filter(etudiant=etudiant, cours=cours).exists():
+                raise serializers.ValidationError(
+                    "Cet étudiant est déjà inscrit à ce cours."
+                )
+        else:  # Mise à jour
+            if (
+                Inscription.objects.filter(etudiant=etudiant, cours=cours)
+                .exclude(etudiant=self.instance.etudiant, cours=self.instance.cours)
+                .exists()
+            ):
+                raise serializers.ValidationError(
+                    "Cet étudiant est déjà inscrit à ce cours."
+                )
+        return data
+ 
 class NoteSerializer(serializers.ModelSerializer):
     etudiant_id = serializers.IntegerField(write_only=True)
     cours_id = serializers.IntegerField(write_only=True)
