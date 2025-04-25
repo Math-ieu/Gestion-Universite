@@ -22,8 +22,8 @@ Permettre de gérer :
 ## 🏗️ Structure du Projet
 
 ```
-/backend/  → API Django REST Framework (MySQL)
-/frontend/ → Application Vite + React.js
+/gestion/  → API Django REST Framework (MySQL)
+/client/ → Application Vite + React.js
 ```
 
 ---
@@ -50,10 +50,6 @@ cd gestion-universitaire
 ### Installation
 
 ```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate     # Windows
 
 pip install -r requirements.txt
 ```
@@ -89,6 +85,8 @@ python manage.py runserver
 ```
 
 👉 Accès à l'API : `http://127.0.0.1:8000/api/`
+👉 Accès à admin : `http://127.0.0.1:8000/admin/`
+
 
 ---
 
@@ -102,7 +100,7 @@ python manage.py runserver
 ### Installation
 
 ```bash
-cd frontend
+cd client
 npm install
 ```
 
