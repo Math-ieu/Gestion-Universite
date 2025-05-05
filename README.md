@@ -44,7 +44,7 @@ cd gestion-universitaire
 ### Prérequis
 
 - Python 3.10+
-- MySQL Server
+- MySQL
 - pip
 
 ### Installation
