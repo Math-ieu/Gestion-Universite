@@ -20,7 +20,6 @@ rad.json
 *.flf
 #Test results file
 TestResults.xml
-.env
 
 # Python
 *.pyc
@@ -34,8 +33,7 @@ media/
 
 # React
 node_modules/
-build/
-.env.local
+
 
 # OS
 .DS_Store

@@ -21,13 +21,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Initialisation de django-environ
 env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
-
+ 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY')
+SECRET_KEY = "django-insecure-o!8%1km8zva$wbvf^3hn4xveioo%sz#p820yc#(yvjd@q2y29u"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
